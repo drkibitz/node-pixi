@@ -1,8 +1,68 @@
 /**
  * @author Mat Groves http://matgroves.com/ @Doormat23
  */
+'use strict';
 
+var globals = require('./core/globals');
+var Point = require('./geom/Point');
+var Sprite = require('./display/Sprite');
 
+/**
+ * Holds all information related to an Interaction event
+ *
+ * @class InteractionData
+ * @constructor
+ */
+function InteractionData()
+{
+    /**
+     * This point stores the world coords of where the touch/mouse event happened
+     *
+     * @property global
+     * @type Point
+     */
+    this.global = new Point();
+
+    // this is here for legacy... but will remove
+    this.local = new Point();
+
+    /**
+     * The target Sprite that was interacted with
+     *
+     * @property target
+     * @type Sprite
+     */
+    this.target = null;
+
+    /**
+     * When passed to an event handler, this will be the original DOM Event that was captured
+     *
+     * @property originalEvent
+     * @type Event
+     */
+    this.originalEvent = null;
+}
+
+/**
+ * This will return the local coords of the specified displayObject for this InteractionData
+ *
+ * @method getLocalPosition
+ * @param displayObject {DisplayObject} The DisplayObject that you would like the local coords off
+ * @return {Point} A point containing the coords of the InteractionData position relative to the DisplayObject
+ */
+InteractionData.prototype.getLocalPosition = function getLocalPosition(displayObject)
+{
+    var worldTransform = displayObject.worldTransform;
+    var world = this.global;
+
+    // do a cheeky transform to get the mouse coords;
+    var a00 = worldTransform[0], a01 = worldTransform[1], a02 = worldTransform[2],
+        a10 = worldTransform[3], a11 = worldTransform[4], a12 = worldTransform[5],
+        id = 1 / (a00 * a11 + a01 * -a10);
+    // set the mouse coords...
+    return new Point(a11 * id * world.x + -a01 * id * world.y + (a12 * a01 - a02 * a11) * id,
+                               a00 * id * world.y + -a10 * id * world.x + (-a12 * a00 + a02 * a10) * id)
+};
 
 /**
  * The interaction manager deals with mouse and touch events. Any DisplayObject can be interactive
@@ -12,7 +72,7 @@
  * @constructor
  * @param stage {Stage} The stage to handle interactions
  */
-PIXI.InteractionManager = function(stage)
+function InteractionManager(stage)
 {
     /**
      * a refference to the stage
@@ -28,7 +88,7 @@ PIXI.InteractionManager = function(stage)
      * @property mouse
      * @type InteractionData
      */
-    this.mouse = new PIXI.InteractionData();
+    this.mouse = new InteractionData();
 
     /**
      * an object that stores current touches (InteractionData) by id reference
@@ -38,10 +98,8 @@ PIXI.InteractionManager = function(stage)
      */
     this.touchs = {};
 
-
-
     // helpers
-    this.tempPoint = new PIXI.Point();
+    this.tempPoint = new Point();
     //this.tempMatrix =  mat3.create();
 
     this.mouseoverEnabled = true;
@@ -52,21 +110,27 @@ PIXI.InteractionManager = function(stage)
     this.interactiveItems = [];
     this.interactionDOMElement = null;
 
-    //this will make it so that you dont have to call bind all the time
-    this.onMouseMove = this.onMouseMove.bind( this );
-    this.onMouseDown = this.onMouseDown.bind(this);
-    this.onMouseOut = this.onMouseOut.bind(this);
-    this.onMouseUp = this.onMouseUp.bind(this);
-
-    this.onTouchStart = this.onTouchStart.bind(this);
-    this.onTouchEnd = this.onTouchEnd.bind(this);
-    this.onTouchMove = this.onTouchMove.bind(this);
-
     this.last = 0;
 }
 
-// constructor
-PIXI.InteractionManager.prototype.constructor = PIXI.InteractionManager;
+var proto = InteractionManager.prototype;
+
+/**
+ * EventListener interface
+ */
+proto.handleEvent = function handleEvent(event)
+{
+    switch (event.type) {
+    case 'mousedown' : this.onMouseDown(event); break;
+    case 'mousemove' : this.onMouseMove(event); break;
+    case 'mouseup'   : this.onMouseUp(event);   break;
+    case 'mouseout'  : this.onMouseOut(event);  break;
+
+    case 'touchstart' : this.onTouchStart(event); break;
+    case 'touchmove'  : this.onTouchMove(event);  break;
+    case 'touchend'   : this.onTouchEnd(event);   break;
+    }
+};
 
 /**
  * Collects an interactive sprite recursively to have their interactions managed
@@ -76,7 +140,7 @@ PIXI.InteractionManager.prototype.constructor = PIXI.InteractionManager;
  * @param iParent {DisplayObject}
  * @private
  */
-PIXI.InteractionManager.prototype.collectInteractiveSprite = function(displayObject, iParent)
+proto.collectInteractiveSprite = function collectInteractiveSprite(displayObject, iParent)
 {
     var children = displayObject.children;
 
@@ -109,7 +173,7 @@ PIXI.InteractionManager.prototype.collectInteractiveSprite = function(displayObj
             }
 //      }
     }
-}
+};
 
 /**
  * Sets the target for event delegation
@@ -118,19 +182,17 @@ PIXI.InteractionManager.prototype.collectInteractiveSprite = function(displayObj
  * @param target {WebGLRenderer|CanvasRenderer} the renderer to bind events to
  * @private
  */
-PIXI.InteractionManager.prototype.setTarget = function(target)
+proto.setTarget = function setTarget(target)
 {
-    this.target = target;
-
-    //check if the dom element has been set. If it has don't do anything
-    if( this.interactionDOMElement === null ) {
-
+    if (!target) {
+        if (this.target !== null) window.removeEventListener('mouseup', this, true);
+    } else if (this.interactionDOMElement === null) {
         this.setTargetDomElement( target.view );
     }
 
-    document.body.addEventListener('mouseup',  this.onMouseUp, true);
-}
-
+    window.addEventListener('mouseup', this, true);
+    this.target = target;
+};
 
 /**
  * Sets the dom element which will receive mouse/touch events. This is useful for when you have other DOM
@@ -141,45 +203,40 @@ PIXI.InteractionManager.prototype.setTarget = function(target)
  * @param domElement {DOMElement} the dom element which will receive mouse and touch events
  * @private
  */
-PIXI.InteractionManager.prototype.setTargetDomElement = function(domElement)
+proto.setTargetDomElement = function setTargetDomElement(domElement)
 {
     //remove previouse listeners
-    if( this.interactionDOMElement !== null )
-    {
+    if (this.interactionDOMElement !== null) {
         this.interactionDOMElement.style['-ms-content-zooming'] = '';
         this.interactionDOMElement.style['-ms-touch-action'] = '';
 
-        this.interactionDOMElement.removeEventListener('mousemove',  this.onMouseMove, true);
-        this.interactionDOMElement.removeEventListener('mousedown',  this.onMouseDown, true);
-        this.interactionDOMElement.removeEventListener('mouseout',   this.onMouseOut, true);
-
+        this.interactionDOMElement.removeEventListener('mousemove', this, true);
+        this.interactionDOMElement.removeEventListener('mousedown', this, true);
+        this.interactionDOMElement.removeEventListener('mouseout', this, true);
         // aint no multi touch just yet!
-        this.interactionDOMElement.removeEventListener('touchstart', this.onTouchStart, true);
-        this.interactionDOMElement.removeEventListener('touchend', this.onTouchEnd, true);
-        this.interactionDOMElement.removeEventListener('touchmove', this.onTouchMove, true);
+        this.interactionDOMElement.removeEventListener('touchstart', this, true);
+        this.interactionDOMElement.removeEventListener('touchend', this, true);
+        this.interactionDOMElement.removeEventListener('touchmove', this, true);
     }
 
 
-    if (window.navigator.msPointerEnabled)
-    {
+    if (window.navigator.msPointerEnabled) {
         // time to remove some of that zoom in ja..
         domElement.style['-ms-content-zooming'] = 'none';
         domElement.style['-ms-touch-action'] = 'none';
-
         // DO some window specific touch!
     }
 
-    this.interactionDOMElement = domElement;
-
-    domElement.addEventListener('mousemove',  this.onMouseMove, true);
-    domElement.addEventListener('mousedown',  this.onMouseDown, true);
-    domElement.addEventListener('mouseout',   this.onMouseOut, true);
-
+    domElement.addEventListener('mousemove', this, true);
+    domElement.addEventListener('mousedown', this, true);
+    domElement.addEventListener('mouseout', this, true);
     // aint no multi touch just yet!
-    domElement.addEventListener('touchstart', this.onTouchStart, true);
-    domElement.addEventListener('touchend', this.onTouchEnd, true);
-    domElement.addEventListener('touchmove', this.onTouchMove, true);
-}
+    domElement.addEventListener('touchstart', this, true);
+    domElement.addEventListener('touchend', this, true);
+    domElement.addEventListener('touchmove', this, true);
+
+    this.interactionDOMElement = domElement;
+};
 
 
 /**
@@ -188,7 +245,7 @@ PIXI.InteractionManager.prototype.setTargetDomElement = function(domElement)
  * @method update
  * @private
  */
-PIXI.InteractionManager.prototype.update = function()
+proto.update = function update()
 {
     if(!this.target)return;
 
@@ -270,7 +327,7 @@ PIXI.InteractionManager.prototype.update = function()
 
         // --->
     }
-}
+};
 
 /**
  * Is called when the mouse moves accross the renderer element
@@ -279,7 +336,7 @@ PIXI.InteractionManager.prototype.update = function()
  * @param event {Event} The DOM event of the mouse moving
  * @private
  */
-PIXI.InteractionManager.prototype.onMouseMove = function(event)
+proto.onMouseMove = function onMouseMove(event)
 {
     this.mouse.originalEvent = event || window.event; //IE uses window.event
     // TODO optimize by not check EVERY TIME! maybe half as often? //
@@ -296,7 +353,7 @@ PIXI.InteractionManager.prototype.onMouseMove = function(event)
             item.mousemove(this.mouse);
         }
     }
-}
+};
 
 /**
  * Is called when the mouse button is pressed down on the renderer element
@@ -305,7 +362,7 @@ PIXI.InteractionManager.prototype.onMouseMove = function(event)
  * @param event {Event} The DOM event of a mouse button being pressed down
  * @private
  */
-PIXI.InteractionManager.prototype.onMouseDown = function(event)
+proto.onMouseDown = function onMouseDown(event)
 {
     this.mouse.originalEvent = event || window.event; //IE uses window.event
 
@@ -315,6 +372,7 @@ PIXI.InteractionManager.prototype.onMouseDown = function(event)
     //stage.__i
     var index = 0;
     var parent = this.stage;
+    var hit = false;
 
     // while
     // hit test
@@ -325,7 +383,7 @@ PIXI.InteractionManager.prototype.onMouseDown = function(event)
         if(item.mousedown || item.click)
         {
             item.__mouseIsDown = true;
-            item.__hit = this.hitTest(item, this.mouse);
+            hit = item.__hit = this.hitTest(item, this.mouse);
 
             if(item.__hit)
             {
@@ -338,10 +396,9 @@ PIXI.InteractionManager.prototype.onMouseDown = function(event)
             }
         }
     }
-}
+};
 
-
-PIXI.InteractionManager.prototype.onMouseOut = function(event)
+proto.onMouseOut = function onMouseOut(event)
 {
     var length = this.interactiveItems.length;
 
@@ -358,7 +415,7 @@ PIXI.InteractionManager.prototype.onMouseOut = function(event)
             item.__isOver = false;
         }
     }
-}
+};
 
 /**
  * Is called when the mouse button is released on the renderer element
@@ -367,7 +424,7 @@ PIXI.InteractionManager.prototype.onMouseOut = function(event)
  * @param event {Event} The DOM event of a mouse button being released
  * @private
  */
-PIXI.InteractionManager.prototype.onMouseUp = function(event)
+proto.onMouseUp = function onMouseUp(event)
 {
     this.mouse.originalEvent = event || window.event; //IE uses window.event
 
@@ -393,7 +450,7 @@ PIXI.InteractionManager.prototype.onMouseUp = function(event)
                     if(item.click)item.click(this.mouse);
                 }
 
-                if(!item.interactiveChildren)up = true;
+                if (!item.interactiveChildren) up = true;
             }
             else
             {
@@ -406,7 +463,7 @@ PIXI.InteractionManager.prototype.onMouseUp = function(event)
             item.__isDown = false;
         }
     }
-}
+};
 
 /**
  * Tests if the current mouse coords hit a sprite
@@ -416,19 +473,19 @@ PIXI.InteractionManager.prototype.onMouseUp = function(event)
  * @param interactionData {InteractionData} The interactiondata object to update in the case of a hit
  * @private
  */
-PIXI.InteractionManager.prototype.hitTest = function(item, interactionData)
+proto.hitTest = function hitTest(item, interactionData)
 {
-    var global = interactionData.global;
+    var world = interactionData.global;
 
-    if(item.vcount !== PIXI.visibleCount)return false;
+    if(item.vcount !== globals.visibleCount)return false;
 
-    var isSprite = (item instanceof PIXI.Sprite),
+    var isSprite = (item instanceof Sprite),
         worldTransform = item.worldTransform,
         a00 = worldTransform[0], a01 = worldTransform[1], a02 = worldTransform[2],
         a10 = worldTransform[3], a11 = worldTransform[4], a12 = worldTransform[5],
         id = 1 / (a00 * a11 + a01 * -a10),
-        x = a11 * id * global.x + -a01 * id * global.y + (a12 * a01 - a02 * a11) * id,
-        y = a00 * id * global.y + -a10 * id * global.x + (-a12 * a00 + a02 * a10) * id;
+        x = a11 * id * world.x + -a01 * id * world.y + (a12 * a01 - a02 * a11) * id,
+        y = a00 * id * world.y + -a10 * id * world.x + (-a12 * a00 + a02 * a10) * id;
 
     interactionData.target = item;
 
@@ -477,7 +534,7 @@ PIXI.InteractionManager.prototype.hitTest = function(item, interactionData)
     }
 
     return false;
-}
+};
 
 /**
  * Is called when a touch is moved accross the renderer element
@@ -486,11 +543,11 @@ PIXI.InteractionManager.prototype.hitTest = function(item, interactionData)
  * @param event {Event} The DOM event of a touch moving accross the renderer view
  * @private
  */
-PIXI.InteractionManager.prototype.onTouchMove = function(event)
+proto.onTouchMove = function onTouchMove(event)
 {
     var rect = this.interactionDOMElement.getBoundingClientRect(),
         changedTouches = event.changedTouches,
-        i, l, touchEvent, touchData, item;
+        i, l, touchEvent, touchData, ii, ll, item;
 
     for (i = 0, l = changedTouches.length; i < l; i++)
     {
@@ -508,7 +565,7 @@ PIXI.InteractionManager.prototype.onTouchMove = function(event)
             if (item.touchmove) item.touchmove(touchData);
         }
     }
-}
+};
 
 /**
  * Is called when a touch is started on the renderer element
@@ -517,7 +574,7 @@ PIXI.InteractionManager.prototype.onTouchMove = function(event)
  * @param event {Event} The DOM event of a touch starting on the renderer view
  * @private
  */
-PIXI.InteractionManager.prototype.onTouchStart = function(event)
+proto.onTouchStart = function onTouchStart(event)
 {
     var rect = this.interactionDOMElement.getBoundingClientRect(),
         changedTouches = event.changedTouches;
@@ -527,7 +584,7 @@ PIXI.InteractionManager.prototype.onTouchStart = function(event)
         var touchEvent = changedTouches[i];
 
         var touchData = this.pool.pop();
-        if (!touchData) touchData = new PIXI.InteractionData();
+        if (!touchData) touchData = new InteractionData();
 
         touchData.originalEvent =  event || window.event;
 
@@ -555,7 +612,7 @@ PIXI.InteractionManager.prototype.onTouchStart = function(event)
             }
         }
     }
-}
+};
 
 /**
  * Is called when a touch is ended on the renderer element
@@ -564,7 +621,7 @@ PIXI.InteractionManager.prototype.onTouchStart = function(event)
  * @param event {Event} The DOM event of a touch ending on the renderer view
  * @private
  */
-PIXI.InteractionManager.prototype.onTouchEnd = function(event)
+proto.onTouchEnd = function onTouchEnd(event)
 {
     //this.mouse.originalEvent = event || window.event; //IE uses window.event
     var rect = this.interactionDOMElement.getBoundingClientRect(),
@@ -620,64 +677,6 @@ PIXI.InteractionManager.prototype.onTouchEnd = function(event)
         this.pool.push(touchData);
         this.touchs[touchEvent.identifier] = null;
     }
-}
+};
 
-/**
- * Holds all information related to an Interaction event
- *
- * @class InteractionData
- * @constructor
- */
-PIXI.InteractionData = function()
-{
-    /**
-     * This point stores the global coords of where the touch/mouse event happened
-     *
-     * @property global
-     * @type Point
-     */
-    this.global = new PIXI.Point();
-
-    // this is here for legacy... but will remove
-    this.local = new PIXI.Point();
-
-    /**
-     * The target Sprite that was interacted with
-     *
-     * @property target
-     * @type Sprite
-     */
-    this.target = null;
-
-    /**
-     * When passed to an event handler, this will be the original DOM Event that was captured
-     *
-     * @property originalEvent
-     * @type Event
-     */
-    this.originalEvent = null;
-}
-
-/**
- * This will return the local coords of the specified displayObject for this InteractionData
- *
- * @method getLocalPosition
- * @param displayObject {DisplayObject} The DisplayObject that you would like the local coords off
- * @return {Point} A point containing the coords of the InteractionData position relative to the DisplayObject
- */
-PIXI.InteractionData.prototype.getLocalPosition = function(displayObject)
-{
-    var worldTransform = displayObject.worldTransform;
-    var global = this.global;
-
-    // do a cheeky transform to get the mouse coords;
-    var a00 = worldTransform[0], a01 = worldTransform[1], a02 = worldTransform[2],
-        a10 = worldTransform[3], a11 = worldTransform[4], a12 = worldTransform[5],
-        id = 1 / (a00 * a11 + a01 * -a10);
-    // set the mouse coords...
-    return new PIXI.Point(a11 * id * global.x + -a01 * id * global.y + (a12 * a01 - a02 * a11) * id,
-                               a00 * id * global.y + -a10 * id * global.x + (-a12 * a00 + a02 * a10) * id)
-}
-
-// constructor
-PIXI.InteractionData.prototype.constructor = PIXI.InteractionData;
+module.exports = InteractionManager;

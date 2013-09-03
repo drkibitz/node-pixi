@@ -1,10 +1,15 @@
 /**
  * @author Mat Groves http://matgroves.com/ @Doormat23
  */
+'use strict';
+
+var AssetLoader = require('./AssetLoader');
+var EventTarget = require('../events/EventTarget');
+var Texture = require('../textures/Texture');
 
 /**
  * The image loader class is responsible for loading images file formats ("jpeg", "jpg", "png" and "gif")
- * Once the image has been loaded it is stored in the PIXI texture cache and can be accessed though PIXI.Texture.fromFrameId() and PIXI.Sprite.fromFromeId()
+ * Once the image has been loaded it is stored in the texture cache and can be accessed though Texture.fromFrameId() and Sprite.fromFromeId()
  * When loaded this class will dispatch a 'loaded' event
  *
  * @class ImageLoader
@@ -13,9 +18,9 @@
  * @param url {String} The url of the image
  * @param crossorigin {Boolean} Whether requests should be treated as crossorigin
  */
-PIXI.ImageLoader = function(url, crossorigin)
+function ImageLoader(url, crossorigin)
 {
-    PIXI.EventTarget.call(this);
+    EventTarget.call(this);
 
     /**
      * The texture being loaded
@@ -23,7 +28,7 @@ PIXI.ImageLoader = function(url, crossorigin)
      * @property texture
      * @type Texture
      */
-    this.texture = PIXI.Texture.fromImage(url, crossorigin);
+    this.texture = Texture.fromImage(url, crossorigin);
 
     /**
      * if the image is loaded with loadFramedSpriteSheet
@@ -31,17 +36,16 @@ PIXI.ImageLoader = function(url, crossorigin)
      *
      */
     this.frames = [];
-};
+}
 
-// constructor
-PIXI.ImageLoader.prototype.constructor = PIXI.ImageLoader;
+var proto = ImageLoader.prototype;
 
 /**
  * Loads image or takes it from cache
  *
  * @method load
  */
-PIXI.ImageLoader.prototype.load = function()
+proto.load = function load()
 {
     if(!this.texture.baseTexture.hasLoaded)
     {
@@ -63,7 +67,7 @@ PIXI.ImageLoader.prototype.load = function()
  * @method onLoaded
  * @private
  */
-PIXI.ImageLoader.prototype.onLoaded = function()
+proto.onLoaded = function onLoaded()
 {
     this.dispatchEvent({type: "loaded", content: this});
 };
@@ -75,9 +79,9 @@ PIXI.ImageLoader.prototype.onLoaded = function()
  * @method loadFramedSpriteSheet
  * @param frameWidth {Number} with of each frame
  * @param frameHeight {Number} height of each frame
- * @param textureName {String} if given, the frames will be cached in <textureName>-<ord> format 
+ * @param textureName {String} if given, the frames will be cached in <textureName>-<ord> format
  */
-PIXI.ImageLoader.prototype.loadFramedSpriteSheet = function(frameWidth, frameHeight, textureName)
+proto.loadFramedSpriteSheet = function(frameWidth, frameHeight, textureName)
 {
     this.frames = [];
     var cols = Math.floor(this.texture.width / frameWidth);
@@ -88,7 +92,7 @@ PIXI.ImageLoader.prototype.loadFramedSpriteSheet = function(frameWidth, frameHei
     {
         for (var x=0; x<cols; x++,i++)
         {
-            var texture = new PIXI.Texture(this.texture, {
+            var texture = new Texture(this.texture, {
                 x: x*frameWidth,
                 y: y*frameHeight,
                 width: frameWidth,
@@ -96,7 +100,7 @@ PIXI.ImageLoader.prototype.loadFramedSpriteSheet = function(frameWidth, frameHei
             });
 
             this.frames.push(texture);
-            if (textureName) PIXI.TextureCache[textureName+'-'+i] = texture;
+            if (textureName) Texture.cache[textureName+'-'+i] = texture;
         }
     }
 
@@ -112,3 +116,10 @@ PIXI.ImageLoader.prototype.loadFramedSpriteSheet = function(frameWidth, frameHei
         this.onLoaded();
     }
 };
+
+AssetLoader.registerLoaderType('jpg', ImageLoader);
+AssetLoader.registerLoaderType('jpeg', ImageLoader);
+AssetLoader.registerLoaderType('png', ImageLoader);
+AssetLoader.registerLoaderType('gif', ImageLoader);
+
+module.exports = ImageLoader;

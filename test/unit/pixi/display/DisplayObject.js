@@ -6,7 +6,6 @@ describe('pixi/display/DisplayObject', function () {
 
     it('Module exists', function () {
         expect(DisplayObject).to.be.a('function');
-        expect(PIXI).to.have.property('visibleCount', 0);
     });
 
     it('Confirm new instance', function () {

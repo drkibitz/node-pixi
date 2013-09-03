@@ -1,6 +1,19 @@
 /**
  * @author Mat Groves http://matgroves.com/ @Doormat23
  */
+'use strict';
+
+var globals = require('../../core/globals');
+var webglGraphics = require('./graphics');
+var WebGLBatch = require('./WebGLBatch');
+var mat3 = require('../../geom/matrix').mat3;
+
+var TilingSprite = require('../../extras/TilingSprite');
+var Strip = require('../../extras/Strip');
+var Graphics = require('../../primitives/Graphics');
+var FilterBlock = require('../../filters/FilterBlock');
+var Sprite = require('../../display/Sprite');
+var CustomRenderable = require('../../extras/CustomRenderable');
 
 /**
  * A WebGLBatch Enables a group of sprites to be drawn using the same settings.
@@ -15,7 +28,7 @@
  * @contructor
  * @param gl {WebGLContext} An instance of the webGL context
  */
-PIXI.WebGLRenderGroup = function(gl)
+function WebGLRenderGroup(gl)
 {
     this.gl = gl;
     this.root = null;
@@ -24,8 +37,7 @@ PIXI.WebGLRenderGroup = function(gl)
     this.toRemove = [];
 }
 
-// constructor
-PIXI.WebGLRenderGroup.prototype.constructor = PIXI.WebGLRenderGroup;
+var proto = WebGLRenderGroup.prototype;
 
 /**
  * Add a display object to the webgl renderer
@@ -34,7 +46,7 @@ PIXI.WebGLRenderGroup.prototype.constructor = PIXI.WebGLRenderGroup;
  * @param displayObject {DisplayObject}
  * @private
  */
-PIXI.WebGLRenderGroup.prototype.setRenderable = function(displayObject)
+proto.setRenderable = function setRenderable(displayObject)
 {
     // has this changed??
     if(this.root)this.removeDisplayObjectAndChildren(this.root);
@@ -47,7 +59,7 @@ PIXI.WebGLRenderGroup.prototype.setRenderable = function(displayObject)
     // TODO what if its already has an object? should remove it
     this.root = displayObject;
     this.addDisplayObjectAndChildren(displayObject);
-}
+};
 
 /**
  * Renders the stage to its webgl view
@@ -55,14 +67,13 @@ PIXI.WebGLRenderGroup.prototype.setRenderable = function(displayObject)
  * @method render
  * @param projection {Object}
  */
-PIXI.WebGLRenderGroup.prototype.render = function(projection)
+proto.render = function render(projection)
 {
-    PIXI.WebGLRenderer.updateTextures();
-
     var gl = this.gl;
 
+    WebGLRenderGroup.updateTextures(gl);
 
-    gl.uniform2f(PIXI.shaderProgram.projectionVector, projection.x, projection.y);
+    gl.uniform2f(globals.shaderProgram.projectionVector, projection.x, projection.y);
     gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
 
     // will render all the elements in the group
@@ -72,28 +83,28 @@ PIXI.WebGLRenderGroup.prototype.render = function(projection)
     {
 
         renderable = this.batchs[i];
-        if(renderable instanceof PIXI.WebGLBatch)
+        if(renderable instanceof WebGLBatch)
         {
             this.batchs[i].render();
             continue;
         }
 
         // non sprite batch..
-        var worldVisible = renderable.vcount === PIXI.visibleCount;
+        var worldVisible = renderable.vcount === globals.visibleCount;
 
-        if(renderable instanceof PIXI.TilingSprite)
+        if(renderable instanceof TilingSprite)
         {
             if(worldVisible)this.renderTilingSprite(renderable, projection);
         }
-        else if(renderable instanceof PIXI.Strip)
+        else if(renderable instanceof Strip)
         {
             if(worldVisible)this.renderStrip(renderable, projection);
         }
-        else if(renderable instanceof PIXI.Graphics)
+        else if(renderable instanceof Graphics)
         {
-            if(worldVisible && renderable.renderable) PIXI.WebGLGraphics.renderGraphics(renderable, projection);//, projectionMatrix);
+            if(worldVisible && renderable.renderable) webglGraphics.renderGraphics(renderable, projection);//, projectionMatrix);
         }
-        else if(renderable instanceof PIXI.FilterBlock)
+        else if(renderable instanceof FilterBlock)
         {
             /*
              * for now only masks are supported..
@@ -106,7 +117,7 @@ PIXI.WebGLRenderGroup.prototype.render = function(projection)
                 gl.stencilFunc(gl.ALWAYS,1,0xff);
                 gl.stencilOp(gl.KEEP,gl.KEEP,gl.REPLACE);
 
-                PIXI.WebGLGraphics.renderGraphics(renderable.mask, projection);
+                webglGraphics.renderGraphics(renderable.mask, projection);
 
                 gl.colorMask(true, true, true, true);
                 gl.stencilFunc(gl.NOTEQUAL,0,0xff);
@@ -118,8 +129,7 @@ PIXI.WebGLRenderGroup.prototype.render = function(projection)
             }
         }
     }
-
-}
+};
 
 /**
  * Renders the stage to its webgl view
@@ -128,10 +138,10 @@ PIXI.WebGLRenderGroup.prototype.render = function(projection)
  * @param filter {FilterBlock}
  * @private
  */
-PIXI.WebGLRenderGroup.prototype.handleFilter = function(filter, projection)
+proto.handleFilter = function handleFilter(filter, projection)
 {
 
-}
+};
 
 /**
  * Renders a specific displayObject
@@ -141,13 +151,13 @@ PIXI.WebGLRenderGroup.prototype.handleFilter = function(filter, projection)
  * @param projection {Object}
  * @private
  */
-PIXI.WebGLRenderGroup.prototype.renderSpecific = function(displayObject, projection)
+proto.renderSpecific = function renderSpecific(displayObject, projection)
 {
-    PIXI.WebGLRenderer.updateTextures();
-
     var gl = this.gl;
 
-    gl.uniform2f(PIXI.shaderProgram.projectionVector, projection.x, projection.y);
+    WebGLRenderGroup.updateTextures(gl);
+
+    gl.uniform2f(globals.shaderProgram.projectionVector, projection.x, projection.y);
 
     // to do!
     // render part of the scene...
@@ -170,7 +180,7 @@ PIXI.WebGLRenderGroup.prototype.renderSpecific = function(displayObject, project
     }
     var startBatch = nextRenderable.batch;
 
-    if(nextRenderable instanceof PIXI.Sprite)
+    if(nextRenderable instanceof Sprite)
     {
         startBatch = nextRenderable.batch;
 
@@ -208,7 +218,7 @@ PIXI.WebGLRenderGroup.prototype.renderSpecific = function(displayObject, project
         if(lastItem.renderable)lastRenderable = lastItem;
     }
 
-    if(lastRenderable instanceof PIXI.Sprite)
+    if(lastRenderable instanceof Sprite)
     {
         endBatch = lastRenderable.batch;
 
@@ -238,7 +248,7 @@ PIXI.WebGLRenderGroup.prototype.renderSpecific = function(displayObject, project
 
     if(startBatch == endBatch)
     {
-        if(startBatch instanceof PIXI.WebGLBatch)
+        if(startBatch instanceof WebGLBatch)
         {
             startBatch.render(startIndex, endIndex+1);
         }
@@ -254,7 +264,7 @@ PIXI.WebGLRenderGroup.prototype.renderSpecific = function(displayObject, project
     endBatchIndex = this.batchs.indexOf(endBatch);
 
     // DO the first batch
-    if(startBatch instanceof PIXI.WebGLBatch)
+    if(startBatch instanceof WebGLBatch)
     {
         startBatch.render(startIndex);
     }
@@ -264,11 +274,12 @@ PIXI.WebGLRenderGroup.prototype.renderSpecific = function(displayObject, project
     }
 
     // DO the middle batchs..
+    var renderable;
     for (var i=startBatchIndex+1; i < endBatchIndex; i++)
     {
         renderable = this.batchs[i];
 
-        if(renderable instanceof PIXI.WebGLBatch)
+        if(renderable instanceof WebGLBatch)
         {
             this.batchs[i].render();
         }
@@ -279,7 +290,7 @@ PIXI.WebGLRenderGroup.prototype.renderSpecific = function(displayObject, project
     }
 
     // DO the last batch..
-    if(endBatch instanceof PIXI.WebGLBatch)
+    if(endBatch instanceof WebGLBatch)
     {
         endBatch.render(0, endIndex+1);
     }
@@ -287,7 +298,7 @@ PIXI.WebGLRenderGroup.prototype.renderSpecific = function(displayObject, project
     {
         this.renderSpecial(endBatch, projection);
     }
-}
+};
 
 /**
  * Renders a specific renderable
@@ -297,33 +308,32 @@ PIXI.WebGLRenderGroup.prototype.renderSpecific = function(displayObject, project
  * @param projection {Object}
  * @private
  */
-PIXI.WebGLRenderGroup.prototype.renderSpecial = function(renderable, projection)
+proto.renderSpecial = function renderSpecial(renderable, projection)
 {
-    var worldVisible = renderable.vcount === PIXI.visibleCount
+    var worldVisible = renderable.vcount === globals.visibleCount;
 
-    if(renderable instanceof PIXI.TilingSprite)
+    if(renderable instanceof TilingSprite)
     {
         if(worldVisible)this.renderTilingSprite(renderable, projection);
     }
-    else if(renderable instanceof PIXI.Strip)
+    else if(renderable instanceof Strip)
     {
         if(worldVisible)this.renderStrip(renderable, projection);
     }
-    else if(renderable instanceof PIXI.CustomRenderable)
+    else if(renderable instanceof CustomRenderable)
     {
         if(worldVisible) renderable.renderWebGL(this, projection);
     }
-    else if(renderable instanceof PIXI.Graphics)
+    else if(renderable instanceof Graphics)
     {
-        if(worldVisible && renderable.renderable) PIXI.WebGLGraphics.renderGraphics(renderable, projection);
+        if(worldVisible && renderable.renderable) webglGraphics.renderGraphics(renderable, projection);
     }
-    else if(renderable instanceof PIXI.FilterBlock)
+    else if(renderable instanceof FilterBlock)
     {
         /*
          * for now only masks are supported..
          */
-
-        var gl = PIXI.gl;
+        var gl = this.gl;
 
         if(renderable.open)
         {
@@ -333,7 +343,7 @@ PIXI.WebGLRenderGroup.prototype.renderSpecial = function(renderable, projection)
             gl.stencilFunc(gl.ALWAYS,1,0xff);
             gl.stencilOp(gl.KEEP,gl.KEEP,gl.REPLACE);
 
-            PIXI.WebGLGraphics.renderGraphics(renderable.mask, projection);
+            webglGraphics.renderGraphics(renderable.mask, projection);
 
             // we know this is a render texture so enable alpha too..
             gl.colorMask(true, true, true, true);
@@ -345,7 +355,7 @@ PIXI.WebGLRenderGroup.prototype.renderSpecial = function(renderable, projection)
             gl.disable(gl.STENCIL_TEST);
         }
     }
-}
+};
 
 /**
  * Updates a webgl texture
@@ -354,7 +364,7 @@ PIXI.WebGLRenderGroup.prototype.renderSpecial = function(renderable, projection)
  * @param displayObject {DisplayObject}
  * @private
  */
-PIXI.WebGLRenderGroup.prototype.updateTexture = function(displayObject)
+proto.updateTexture = function updateTexture(displayObject)
 {
 
     // TODO definitely can optimse this function..
@@ -387,7 +397,7 @@ PIXI.WebGLRenderGroup.prototype.updateTexture = function(displayObject)
     }
 
     this.insertObject(displayObject, previousRenderable, nextRenderable);
-}
+};
 
 /**
  * Adds filter blocks
@@ -397,7 +407,7 @@ PIXI.WebGLRenderGroup.prototype.updateTexture = function(displayObject)
  * @param end {FilterBlock}
  * @private
  */
-PIXI.WebGLRenderGroup.prototype.addFilterBlocks = function(start, end)
+proto.addFilterBlocks = function addFilterBlocks(start, end)
 {
     start.__renderGroup = this;
     end.__renderGroup = this;
@@ -427,7 +437,7 @@ PIXI.WebGLRenderGroup.prototype.addFilterBlocks = function(start, end)
         if(previousRenderable2.renderable && previousRenderable2.__renderGroup)break;
     }
     this.insertAfter(end, previousRenderable2);
-}
+};
 
 /**
  * Remove filter blocks
@@ -437,11 +447,11 @@ PIXI.WebGLRenderGroup.prototype.addFilterBlocks = function(start, end)
  * @param end {FilterBlock}
  * @private
  */
-PIXI.WebGLRenderGroup.prototype.removeFilterBlocks = function(start, end)
+proto.removeFilterBlocks = function removeFilterBlocks(start, end)
 {
     this.removeObject(start);
     this.removeObject(end);
-}
+};
 
 /**
  * Adds a display object and children to the webgl context
@@ -450,7 +460,7 @@ PIXI.WebGLRenderGroup.prototype.removeFilterBlocks = function(start, end)
  * @param displayObject {DisplayObject}
  * @private
  */
-PIXI.WebGLRenderGroup.prototype.addDisplayObjectAndChildren = function(displayObject)
+proto.addDisplayObjectAndChildren = function addDisplayObjectAndChildren(displayObject)
 {
     if(displayObject.__renderGroup)displayObject.__renderGroup.removeDisplayObjectAndChildren(displayObject);
 
@@ -498,7 +508,7 @@ PIXI.WebGLRenderGroup.prototype.addDisplayObjectAndChildren = function(displayOb
         tempObject = tempObject._iNext;
     }
     while(tempObject != testObject)
-}
+};
 
 /**
  * Removes a display object and children to the webgl context
@@ -507,7 +517,7 @@ PIXI.WebGLRenderGroup.prototype.addDisplayObjectAndChildren = function(displayOb
  * @param displayObject {DisplayObject}
  * @private
  */
-PIXI.WebGLRenderGroup.prototype.removeDisplayObjectAndChildren = function(displayObject)
+proto.removeDisplayObjectAndChildren = function removeDisplayObjectAndChildren(displayObject)
 {
     if(displayObject.__renderGroup != this)return;
 
@@ -520,7 +530,7 @@ PIXI.WebGLRenderGroup.prototype.removeDisplayObjectAndChildren = function(displa
         displayObject = displayObject._iNext;
     }
     while(displayObject)
-}
+};
 
 /**
  * Inserts a displayObject into the linked list
@@ -531,7 +541,7 @@ PIXI.WebGLRenderGroup.prototype.removeDisplayObjectAndChildren = function(displa
  * @param nextObject {DisplayObject}
  * @private
  */
-PIXI.WebGLRenderGroup.prototype.insertObject = function(displayObject, previousObject, nextObject)
+proto.insertObject = function insertObject(displayObject, previousObject, nextObject)
 {
     // while looping below THE OBJECT MAY NOT HAVE BEEN ADDED
     var previousSprite = previousObject,
@@ -542,11 +552,11 @@ PIXI.WebGLRenderGroup.prototype.insertObject = function(displayObject, previousO
      * so now we have the next renderable and the previous renderable
      *
      */
-    if(displayObject instanceof PIXI.Sprite)
+    if(displayObject instanceof Sprite)
     {
         var previousBatch, nextBatch;
 
-        if(previousSprite instanceof PIXI.Sprite)
+        if(previousSprite instanceof Sprite)
         {
             previousBatch = previousSprite.batch;
             if(previousBatch)
@@ -566,7 +576,7 @@ PIXI.WebGLRenderGroup.prototype.insertObject = function(displayObject, previousO
 
         if(nextSprite)
         {
-            if(nextSprite instanceof PIXI.Sprite)
+            if(nextSprite instanceof Sprite)
             {
                 nextBatch = nextSprite.batch;
 
@@ -591,7 +601,7 @@ PIXI.WebGLRenderGroup.prototype.insertObject = function(displayObject, previousO
                              * seems the new sprite is in the middle of a batch
                              * lets split it..
                              */
-                            batch = PIXI.WebGLRenderer.getBatch();
+                            batch = WebGLBatch.getBatch();
 
                             index = this.batchs.indexOf( previousBatch );
                             batch.init(displayObject);
@@ -616,7 +626,7 @@ PIXI.WebGLRenderGroup.prototype.insertObject = function(displayObject, previousO
          * time to create anew one!
          */
 
-        batch = PIXI.WebGLRenderer.getBatch();
+        batch = WebGLBatch.getBatch();
         batch.init(displayObject);
 
         if(previousBatch) // if this is invalid it means
@@ -631,7 +641,7 @@ PIXI.WebGLRenderGroup.prototype.insertObject = function(displayObject, previousO
 
         return;
     }
-    else if(displayObject instanceof PIXI.TilingSprite)
+    else if(displayObject instanceof TilingSprite)
     {
 
         // add to a batch!!
@@ -639,13 +649,13 @@ PIXI.WebGLRenderGroup.prototype.insertObject = function(displayObject, previousO
     //  this.batchs.push(displayObject);
 
     }
-    else if(displayObject instanceof PIXI.Strip)
+    else if(displayObject instanceof Strip)
     {
         // add to a batch!!
         this.initStrip(displayObject);
     //  this.batchs.push(displayObject);
     }
-    /*else if(displayObject)// instanceof PIXI.Graphics)
+    /*else if(displayObject)// instanceof Graphics)
     {
         //displayObject.initWebGL(this);
 
@@ -657,8 +667,7 @@ PIXI.WebGLRenderGroup.prototype.insertObject = function(displayObject, previousO
     this.insertAfter(displayObject, previousSprite);
 
     // insert and SPLIT!
-
-}
+};
 
 /**
  * Inserts a displayObject into the linked list
@@ -668,11 +677,11 @@ PIXI.WebGLRenderGroup.prototype.insertObject = function(displayObject, previousO
  * @param displayObject {DisplayObject} The object to insert
  * @private
  */
-PIXI.WebGLRenderGroup.prototype.insertAfter = function(item, displayObject)
+proto.insertAfter = function insertAfter(item, displayObject)
 {
     var previousBatch, splitBatch, index;
 
-    if(displayObject instanceof PIXI.Sprite)
+    if(displayObject instanceof Sprite)
     {
         previousBatch = displayObject.batch;
 
@@ -715,7 +724,7 @@ PIXI.WebGLRenderGroup.prototype.insertAfter = function(item, displayObject)
         index = this.batchs.indexOf( displayObject );
         this.batchs.splice(index + 1, 0, item);
     }
-}
+};
 
 /**
  * Removes a displayObject from the linked list
@@ -724,7 +733,7 @@ PIXI.WebGLRenderGroup.prototype.insertAfter = function(item, displayObject)
  * @param displayObject {DisplayObject} The object to remove
  * @private
  */
-PIXI.WebGLRenderGroup.prototype.removeObject = function(displayObject)
+proto.removeObject = function removeObject(displayObject)
 {
     // loop through children..
     // display object //
@@ -739,7 +748,7 @@ PIXI.WebGLRenderGroup.prototype.removeObject = function(displayObject)
      */
     var batchToRemove, index;
 
-    if (displayObject instanceof PIXI.Sprite)
+    if (displayObject instanceof Sprite)
     {
         // should always have a batch!
         var batch = displayObject.batch;
@@ -771,29 +780,33 @@ PIXI.WebGLRenderGroup.prototype.removeObject = function(displayObject)
         {
             // wha - eva! just get of the empty batch!
             this.batchs.splice(index, 1);
-            if(batchToRemove instanceof PIXI.WebGLBatch)PIXI.WebGLRenderer.returnBatch(batchToRemove);
+            if (batchToRemove instanceof WebGLBatch)
+                WebGLBatch.returnBatch(batchToRemove);
 
             return;
         }
 
-        if(this.batchs[index - 1] instanceof PIXI.WebGLBatch && this.batchs[index + 1] instanceof PIXI.WebGLBatch)
+        if(this.batchs[index - 1] instanceof WebGLBatch && this.batchs[index + 1] instanceof WebGLBatch)
         {
             if(this.batchs[index - 1].texture == this.batchs[index + 1].texture && this.batchs[index - 1].blendMode == this.batchs[index + 1].blendMode)
             {
                 //console.log("MERGE")
                 this.batchs[index - 1].merge(this.batchs[index + 1]);
 
-                if(batchToRemove instanceof PIXI.WebGLBatch)PIXI.WebGLRenderer.returnBatch(batchToRemove);
-                PIXI.WebGLRenderer.returnBatch(this.batchs[index + 1]);
+                if (batchToRemove instanceof WebGLBatch)
+                    WebGLBatch.returnBatch(batchToRemove);
+
+                WebGLBatch.returnBatch(this.batchs[index + 1]);
                 this.batchs.splice(index, 2);
                 return;
             }
         }
 
         this.batchs.splice(index, 1);
-        if(batchToRemove instanceof PIXI.WebGLBatch)PIXI.WebGLRenderer.returnBatch(batchToRemove);
+        if (batchToRemove instanceof WebGLBatch)
+            WebGLBatch.returnBatch(batchToRemove);
     }
-}
+};
 
 /**
  * Initializes a tiling sprite
@@ -802,7 +815,7 @@ PIXI.WebGLRenderGroup.prototype.removeObject = function(displayObject)
  * @param sprite {TilingSprite} The tiling sprite to initialize
  * @private
  */
-PIXI.WebGLRenderGroup.prototype.initTilingSprite = function(sprite)
+proto.initTilingSprite = function initTilingSprite(sprite)
 {
     var gl = this.gl;
 
@@ -852,7 +865,7 @@ PIXI.WebGLRenderGroup.prototype.initTilingSprite = function(sprite)
     {
         sprite.texture.baseTexture._powerOf2 = true;
     }
-}
+};
 
 /**
  * Renders a Strip
@@ -862,29 +875,29 @@ PIXI.WebGLRenderGroup.prototype.initTilingSprite = function(sprite)
  * @param projection {Object}
  * @private
  */
-PIXI.WebGLRenderGroup.prototype.renderStrip = function(strip, projection)
+proto.renderStrip = function renderStrip(strip, projection)
 {
     var gl = this.gl;
-    var shaderProgram = PIXI.shaderProgram;
+    var shaderProgram = globals.shaderProgram;
 //  mat
-    //var mat4Real = PIXI.mat3.toMat4(strip.worldTransform);
-    //PIXI.mat4.transpose(mat4Real);
-    //PIXI.mat4.multiply(projectionMatrix, mat4Real, mat4Real )
+    //var mat4Real = mat3.toMat4(strip.worldTransform);
+    //mat4.transpose(mat4Real);
+    //mat4.multiply(projectionMatrix, mat4Real, mat4Real )
 
 
-    gl.useProgram(PIXI.stripShaderProgram);
+    gl.useProgram(globals.stripShaderProgram);
 
-    var m = PIXI.mat3.clone(strip.worldTransform);
+    var m = mat3.clone(strip.worldTransform);
 
-    PIXI.mat3.transpose(m);
+    mat3.transpose(m);
 
     // set the matrix transform for the
-    gl.uniformMatrix3fv(PIXI.stripShaderProgram.translationMatrix, false, m);
-    gl.uniform2f(PIXI.stripShaderProgram.projectionVector, projection.x, projection.y);
-    gl.uniform1f(PIXI.stripShaderProgram.alpha, strip.worldAlpha);
+    gl.uniformMatrix3fv(globals.stripShaderProgram.translationMatrix, false, m);
+    gl.uniform2f(globals.stripShaderProgram.projectionVector, projection.x, projection.y);
+    gl.uniform1f(globals.stripShaderProgram.alpha, strip.worldAlpha);
 
 /*
-    if(strip.blendMode == PIXI.blendModes.NORMAL)
+    if(strip.blendMode == blendModes.NORMAL)
     {
         gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
     }
@@ -943,8 +956,8 @@ PIXI.WebGLRenderGroup.prototype.renderStrip = function(strip, projection)
 
     gl.drawElements(gl.TRIANGLE_STRIP, strip.indices.length, gl.UNSIGNED_SHORT, 0);
 
-    gl.useProgram(PIXI.shaderProgram);
-}
+    gl.useProgram(globals.shaderProgram);
+};
 
 /**
  * Renders a TilingSprite
@@ -954,10 +967,10 @@ PIXI.WebGLRenderGroup.prototype.renderStrip = function(strip, projection)
  * @param projectionMatrix {Object}
  * @private
  */
-PIXI.WebGLRenderGroup.prototype.renderTilingSprite = function(sprite, projectionMatrix)
+proto.renderTilingSprite = function renderTilingSprite(sprite, projectionMatrix)
 {
     var gl = this.gl;
-    var shaderProgram = PIXI.shaderProgram;
+    var shaderProgram = globals.shaderProgram;
 
     var tilePosition = sprite.tilePosition;
     var tileScale = sprite.tileScale;
@@ -984,7 +997,7 @@ PIXI.WebGLRenderGroup.prototype.renderTilingSprite = function(sprite, projection
     gl.bufferSubData(gl.ARRAY_BUFFER, 0, sprite.uvs)
 
     this.renderStrip(sprite, projectionMatrix);
-}
+};
 
 /**
  * Initializes a strip to be rendered
@@ -993,7 +1006,7 @@ PIXI.WebGLRenderGroup.prototype.renderTilingSprite = function(sprite, projection
  * @param strip {Strip} The strip to initialize
  * @private
  */
-PIXI.WebGLRenderGroup.prototype.initStrip = function(strip)
+proto.initStrip = function initStrip(strip)
 {
     // build the strip!
     var gl = this.gl;
@@ -1016,4 +1029,83 @@ PIXI.WebGLRenderGroup.prototype.initStrip = function(strip)
 
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, strip._indexBuffer);
     gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, strip.indices, gl.STATIC_DRAW);
-}
+};
+
+/**
+ * Updates a loaded webgl texture
+ *
+ * @static
+ * @method updateTexture
+ * @param gl {WebGLContext} An instance of the webGL context
+ * @param texture {Texture} The texture to update
+ */
+WebGLRenderGroup.updateTexture = function updateTexture(gl, texture)
+{
+    //TODO break this out into a texture manager...
+    if(!texture._glTexture)
+    {
+        texture._glTexture = gl.createTexture();
+    }
+
+    if(texture.hasLoaded)
+    {
+        gl.bindTexture(gl.TEXTURE_2D, texture._glTexture);
+        gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
+
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, texture.source);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+
+        // reguler...
+
+        if(!texture._powerOf2)
+        {
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        }
+        else
+        {
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
+        }
+
+        gl.bindTexture(gl.TEXTURE_2D, null);
+    }
+};
+
+/**
+ * Destroys a loaded webgl texture
+ *
+ * @method destroyTexture
+ * @param gl {WebGLContext} An instance of the webGL context
+ * @param texture {Texture} The texture to update
+ */
+WebGLRenderGroup.destroyTexture = function destroyTexture(gl, texture)
+{
+    //TODO break this out into a texture manager...
+    if(texture._glTexture)
+    {
+        texture._glTexture = gl.createTexture();
+        gl.deleteTexture(gl.TEXTURE_2D, texture._glTexture);
+    }
+};
+
+/**
+ * Updates the textures loaded into this webgl renderer
+ *
+ * @static
+ * @method updateTextures
+ * @param gl {WebGLContext} An instance of the webGL context
+ */
+WebGLRenderGroup.updateTextures = function updateTextures(gl)
+{
+    //TODO break this out into a texture manager...
+    for (var i = 0, l = globals.texturesToUpdate.length; i < l; i++)
+        WebGLRenderGroup.updateTexture(gl, globals.texturesToUpdate[i]);
+    for (i = 0, l = globals.texturesToDestroy.length; i < l; i++)
+        WebGLRenderGroup.destroyTexture(gl, globals.texturesToDestroy[i]);
+    globals.texturesToUpdate = [];
+    globals.texturesToDestroy = [];
+};
+
+module.exports = WebGLRenderGroup;

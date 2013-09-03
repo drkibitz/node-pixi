@@ -1,7 +1,9 @@
 /**
  * @author Mat Groves http://matgroves.com/ @Doormat23
  */
+'use strict';
 
+var DisplayObject = require('../display/DisplayObject');
 
 /**
  * This object is one that will allow you to specify custom rendering functions based on render type
@@ -10,15 +12,14 @@
  * @extends DisplayObject
  * @constructor
  */
-PIXI.CustomRenderable = function()
+function CustomRenderable()
 {
-    PIXI.DisplayObject.call( this );
-
+	DisplayObject.call(this);
 }
 
-// constructor
-PIXI.CustomRenderable.prototype = Object.create( PIXI.DisplayObject.prototype );
-PIXI.CustomRenderable.prototype.constructor = PIXI.CustomRenderable;
+var proto = CustomRenderable.prototype = Object.create(DisplayObject.prototype, {
+	constructor: {value: CustomRenderable}
+});
 
 /**
  * If this object is being rendered by a CanvasRenderer it will call this callback
@@ -26,10 +27,10 @@ PIXI.CustomRenderable.prototype.constructor = PIXI.CustomRenderable;
  * @method renderCanvas
  * @param renderer {CanvasRenderer} The renderer instance
  */
-PIXI.CustomRenderable.prototype.renderCanvas = function(renderer)
+proto.renderCanvas = function renderCanvas(renderer)
 {
     // override!
-}
+};
 
 /**
  * If this object is being rendered by a WebGLRenderer it will call this callback to initialize
@@ -37,10 +38,10 @@ PIXI.CustomRenderable.prototype.renderCanvas = function(renderer)
  * @method initWebGL
  * @param renderer {WebGLRenderer} The renderer instance
  */
-PIXI.CustomRenderable.prototype.initWebGL = function(renderer)
+proto.initWebGL = function initWebGL(renderer)
 {
     // override!
-}
+};
 
 /**
  * If this object is being rendered by a WebGLRenderer it will call this callback
@@ -48,9 +49,10 @@ PIXI.CustomRenderable.prototype.initWebGL = function(renderer)
  * @method renderWebGL
  * @param renderer {WebGLRenderer} The renderer instance
  */
-PIXI.CustomRenderable.prototype.renderWebGL = function(renderGroup, projectionMatrix)
+proto.renderWebGL = function renderWebGL(renderGroup, projectionMatrix)
 {
     // not sure if both needed? but ya have for now!
     // override!
-}
+};
 
+module.exports = CustomRenderable;

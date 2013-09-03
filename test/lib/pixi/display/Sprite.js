@@ -14,7 +14,7 @@ function pixi_display_Sprite_confirmNew(obj, done) {
     expect(obj).to.have.property('stage', null);
 
     expect(obj).to.have.property('anchor');
-    pixi_core_Point_confirm(obj.anchor, 0, 0);
+    pixi_geom_Point_confirm(obj.anchor, 0, 0);
 
     expect(obj).to.have.property('blendMode', PIXI.blendModes.NORMAL);
     expect(obj).to.have.property('width', 1); // TODO: is 1 expected

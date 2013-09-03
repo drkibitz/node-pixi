@@ -1,13 +1,13 @@
 /**
  * @author Mat Groves http://matgroves.com/ @Doormat23
  */
+'use strict';
 
-
-
-PIXI.FilterBlock = function(mask)
+function FilterBlock(mask)
 {
-    this.graphics = mask
+    this.graphics = mask;
     this.visible = true;
     this.renderable = true;
 }
 
+module.exports = FilterBlock;

@@ -1,13 +1,19 @@
 /**
  * @author Mat Groves http://matgroves.com/ @Doormat23
  */
+'use strict';
+
+var JsonLoader = require('./JsonLoader');
+var ImageLoader = require('./ImageLoader');
+var EventTarget = require('../events/EventTarget');
+var Texture = require('../textures/Texture');
 
 /**
  * The sprite sheet loader is used to load in JSON sprite sheet data
  * To generate the data you can use http://www.codeandweb.com/texturepacker and publish the "JSON" format
  * There is a free version so thats nice, although the paid version is great value for money.
  * It is highly recommended to use Sprite sheets (also know as texture atlas") as it means sprite"s can be batched and drawn together for highly increased rendering speed.
- * Once the data has been loaded the frames are stored in the PIXI texture cache and can be accessed though PIXI.Texture.fromFrameId() and PIXI.Sprite.fromFromeId()
+ * Once the data has been loaded the frames are stored in the texture cache and can be accessed though Texture.fromFrameId() and Sprite.fromFromeId()
  * This loader will also load the image file that the Spritesheet points to as well as the data.
  * When loaded this class will dispatch a "loaded" event
  *
@@ -17,14 +23,13 @@
  * @param url {String} The url of the sprite sheet JSON file
  * @param crossorigin {Boolean} Whether requests should be treated as crossorigin
  */
-
-PIXI.SpriteSheetLoader = function (url, crossorigin) {
+function SpriteSheetLoader(url, crossorigin) {
     /*
      * i use texture packer to load the assets..
      * http://www.codeandweb.com/texturepacker
      * make sure to set the format as "JSON"
      */
-    PIXI.EventTarget.call(this);
+    EventTarget.call(this);
 
     /**
      * The url of the bitmap font data
@@ -66,19 +71,18 @@ PIXI.SpriteSheetLoader = function (url, crossorigin) {
      * @type Object
      */
     this.frames = {};
-};
+}
 
-// constructor
-PIXI.SpriteSheetLoader.prototype.constructor = PIXI.SpriteSheetLoader;
+var proto = SpriteSheetLoader.prototype;
 
 /**
  * This will begin loading the JSON file
  *
  * @method load
  */
-PIXI.SpriteSheetLoader.prototype.load = function () {
+proto.load = function () {
     var scope = this;
-    var jsonLoader = new PIXI.JsonLoader(this.url, this.crossorigin);
+    var jsonLoader = new JsonLoader(this.url, this.crossorigin);
     jsonLoader.addEventListener("loaded", function (event) {
         scope.json = event.content.json;
         scope.onJSONLoaded();
@@ -92,10 +96,11 @@ PIXI.SpriteSheetLoader.prototype.load = function () {
  * @method onJSONLoaded
  * @private
  */
-PIXI.SpriteSheetLoader.prototype.onJSONLoaded = function () {
+proto.onJSONLoaded = function onJSONLoaded()
+{
     var scope = this;
     var textureUrl = this.baseUrl + this.json.meta.image;
-    var image = new PIXI.ImageLoader(textureUrl, this.crossorigin);
+    var image = new ImageLoader(textureUrl, this.crossorigin);
     var frameData = this.json.frames;
 
     this.texture = image.texture.baseTexture;
@@ -106,7 +111,7 @@ PIXI.SpriteSheetLoader.prototype.onJSONLoaded = function () {
     for (var i in frameData) {
         var rect = frameData[i].frame;
         if (rect) {
-            PIXI.TextureCache[i] = new PIXI.Texture(this.texture, {
+            Texture.cache[i] = new Texture(this.texture, {
                 x: rect.x,
                 y: rect.y,
                 width: rect.w,
@@ -114,8 +119,8 @@ PIXI.SpriteSheetLoader.prototype.onJSONLoaded = function () {
             });
             if (frameData[i].trimmed) {
                 //var realSize = frameData[i].spriteSourceSize;
-                PIXI.TextureCache[i].realSize = frameData[i].spriteSourceSize;
-                PIXI.TextureCache[i].trim.x = 0; // (realSize.x / rect.w)
+                Texture.cache[i].realSize = frameData[i].spriteSourceSize;
+                Texture.cache[i].trim.x = 0; // (realSize.x / rect.w)
                 // calculate the offset!
             }
         }
@@ -129,9 +134,12 @@ PIXI.SpriteSheetLoader.prototype.onJSONLoaded = function () {
  * @method onLoaded
  * @private
  */
-PIXI.SpriteSheetLoader.prototype.onLoaded = function () {
+proto.onLoaded = function onLoaded()
+{
     this.dispatchEvent({
         type: "loaded",
         content: this
     });
 };
+
+module.exports = SpriteSheetLoader;

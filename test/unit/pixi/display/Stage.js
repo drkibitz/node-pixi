@@ -21,7 +21,7 @@ describe('pixi/display/Stage', function () {
         expect(obj).to.respondTo('getMousePosition');
 
         // FIXME: duplicate member in DisplayObject
-        pixi_core_Matrix_confirmNewMat3(obj.worldTransform);
+        pixi_geom_matrix_confirmNewMat3(obj.worldTransform);
         // FIXME: convert arg to bool in constructor
         expect(obj).to.have.property('interactive', true);
 
@@ -35,7 +35,7 @@ describe('pixi/display/Stage', function () {
 
         expect(obj).to.have.property('hitArea')
             .and.to.be.an.instanceof(Rectangle);
-        pixi_core_Rectangle_confirm(obj.hitArea, 0, 0, 100000, 100000);
+        pixi_geom_Rectangle_confirm(obj.hitArea, 0, 0, 100000, 100000);
 
         expect(obj).to.have.property('backgroundColor', 0x000000);
         expect(obj).to.have.deep.property('backgroundColorSplit.length', 3);

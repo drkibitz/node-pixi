@@ -1,6 +1,46 @@
 /**
  * @author Mat Groves http://matgroves.com/ @Doormat23
  */
+'use strict';
+
+var AssetLoader = require('./AssetLoader');
+var ImageLoader = require('./ImageLoader');
+var EventTarget = require('../events/EventTarget');
+var Texture = require('../textures/Texture');
+var Spine = require('../extras/Spine');
+var SkeletonJson = require('../utils/spine').SkeletonJson;
+
+/**
+ * A wrapper for ajax requests to be handled cross browser
+ *
+ * @private
+ */
+function createRequest()
+{
+    /*global ActiveXObject*/
+    var activexmodes = ["Msxml2.XMLHTTP.6.0", "Msxml2.XMLHTTP.3.0", "Microsoft.XMLHTTP"] //activeX versions to check for in IE
+
+    if (window.ActiveXObject)
+    { //Test for support for ActiveXObject in IE first (as XMLHttpRequest in IE7 is broken)
+        for (var i=0; i<activexmodes.length; i++)
+        {
+            try{
+                return new ActiveXObject(activexmodes[i])
+            }
+            catch(e){
+                //suppress error
+            }
+        }
+    }
+    else if (window.XMLHttpRequest) // if Mozilla, Safari etc
+    {
+        return new XMLHttpRequest()
+    }
+    else
+    {
+        return false;
+    }
+}
 
 /**
  * The json file loader is used to load in JSON data and parsing it
@@ -13,8 +53,8 @@
  * @param url {String} The url of the JSON file
  * @param crossorigin {Boolean} Whether requests should be treated as crossorigin
  */
-PIXI.JsonLoader = function (url, crossorigin) {
-    PIXI.EventTarget.call(this);
+function JsonLoader(url, crossorigin) {
+    EventTarget.call(this);
 
     /**
      * The url of the bitmap font data
@@ -49,27 +89,26 @@ PIXI.JsonLoader = function (url, crossorigin) {
      * @readOnly
      */
     this.loaded = false;
+}
 
-};
-
-// constructor
-PIXI.JsonLoader.prototype.constructor = PIXI.JsonLoader;
+var proto = JsonLoader.prototype;
 
 /**
  * Loads the JSON data
  *
  * @method load
  */
-PIXI.JsonLoader.prototype.load = function () {
-    this.ajaxRequest = new AjaxRequest();
+proto.load = function load()
+{
+    this.request = createRequest();
     var scope = this;
-    this.ajaxRequest.onreadystatechange = function () {
+    this.request.onreadystatechange = function () {
         scope.onJSONLoaded();
     };
 
-    this.ajaxRequest.open("GET", this.url, true);
-    if (this.ajaxRequest.overrideMimeType) this.ajaxRequest.overrideMimeType("application/json");
-    this.ajaxRequest.send(null);
+    this.request.open("GET", this.url, true);
+    if (this.request.overrideMimeType) this.request.overrideMimeType("application/json");
+    this.request.send(null);
 };
 
 /**
@@ -78,17 +117,18 @@ PIXI.JsonLoader.prototype.load = function () {
  * @method onJSONLoaded
  * @private
  */
-PIXI.JsonLoader.prototype.onJSONLoaded = function () {
-    if (this.ajaxRequest.readyState == 4) {
-        if (this.ajaxRequest.status == 200 || window.location.href.indexOf("http") == -1) {
-            this.json = JSON.parse(this.ajaxRequest.responseText);
+proto.onJSONLoaded = function onJSONLoaded()
+{
+    if (this.request.readyState == 4) {
+        if (this.request.status == 200 || window.location.href.indexOf("http") == -1) {
+            this.json = JSON.parse(this.request.responseText);
 
             if(this.json.frames)
             {
                 // sprite sheet
                 var scope = this;
                 var textureUrl = this.baseUrl + this.json.meta.image;
-                var image = new PIXI.ImageLoader(textureUrl, this.crossorigin);
+                var image = new ImageLoader(textureUrl, this.crossorigin);
                 var frameData = this.json.frames;
 
                 this.texture = image.texture.baseTexture;
@@ -99,7 +139,7 @@ PIXI.JsonLoader.prototype.onJSONLoaded = function () {
                 for (var i in frameData) {
                     var rect = frameData[i].frame;
                     if (rect) {
-                        PIXI.TextureCache[i] = new PIXI.Texture(this.texture, {
+                        Texture.cache[i] = new Texture(this.texture, {
                             x: rect.x,
                             y: rect.y,
                             width: rect.w,
@@ -107,8 +147,8 @@ PIXI.JsonLoader.prototype.onJSONLoaded = function () {
                         });
                         if (frameData[i].trimmed) {
                             //var realSize = frameData[i].spriteSourceSize;
-                            PIXI.TextureCache[i].realSize = frameData[i].spriteSourceSize;
-                            PIXI.TextureCache[i].trim.x = 0; // (realSize.x / rect.w)
+                            Texture.cache[i].realSize = frameData[i].spriteSourceSize;
+                            Texture.cache[i].trim.x = 0; // (realSize.x / rect.w)
                             // calculate the offset!
                         }
                     }
@@ -120,9 +160,9 @@ PIXI.JsonLoader.prototype.onJSONLoaded = function () {
             else if(this.json.bones)
             {
                 // spine animation
-                var spineJsonParser = new spine.SkeletonJson();
+                var spineJsonParser = new SkeletonJson();
                 var skeletonData = spineJsonParser.readSkeletonData(this.json);
-                PIXI.AnimCache[this.url] = skeletonData;
+                Spine.animCache[this.url] = skeletonData;
                 this.onLoaded();
             }
             else
@@ -143,7 +183,8 @@ PIXI.JsonLoader.prototype.onJSONLoaded = function () {
  * @method onLoaded
  * @private
  */
-PIXI.JsonLoader.prototype.onLoaded = function () {
+proto.onLoaded = function onLoaded()
+{
     this.loaded = true;
     this.dispatchEvent({
         type: "loaded",
@@ -157,9 +198,14 @@ PIXI.JsonLoader.prototype.onLoaded = function () {
  * @method onError
  * @private
  */
-PIXI.JsonLoader.prototype.onError = function () {
+proto.onError = function onError()
+{
     this.dispatchEvent({
         type: "error",
         content: this
     });
 };
+
+AssetLoader.registerLoaderType('json', JsonLoader);
+
+module.exports = JsonLoader;

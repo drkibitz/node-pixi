@@ -1,12 +1,16 @@
 /**
  * @author Mat Groves http://matgroves.com/
  */
+'use strict';
 
-PIXI.Strip = function(texture, width, height)
+var blendModes = require('../display/blendModes');
+var DisplayObjectContainer = require('../display/DisplayObjectContainer');
+
+function Strip(texture, width, height)
 {
-    PIXI.DisplayObjectContainer.call( this );
+    DisplayObjectContainer.call( this );
     this.texture = texture;
-    this.blendMode = PIXI.blendModes.NORMAL;
+    this.blendMode = blendModes.NORMAL;
 
     try
     {
@@ -58,18 +62,20 @@ PIXI.Strip = function(texture, width, height)
     }
     else
     {
-        this.onTextureUpdateBind = this.onTextureUpdate.bind(this);
-        this.texture.addEventListener( 'update', this.onTextureUpdateBind );
+        var that = this;
+        this.texture.addEventListener( 'update', function () {
+            that.onTextureUpdate();
+        });
     }
 
     this.renderable = true;
 }
 
-// constructor
-PIXI.Strip.prototype = Object.create( PIXI.DisplayObjectContainer.prototype );
-PIXI.Strip.prototype.constructor = PIXI.Strip;
+var proto = Strip.prototype = Object.create(DisplayObjectContainer.prototype, {
+    constructor: {value: Strip}
+});
 
-PIXI.Strip.prototype.setTexture = function(texture)
+proto.setTexture = function setTexture(texture)
 {
     //TODO SET THE TEXTURES
     //TODO VISIBILITY
@@ -79,11 +85,12 @@ PIXI.Strip.prototype.setTexture = function(texture)
     this.width   = texture.frame.width;
     this.height  = texture.frame.height;
     this.updateFrame = true;
-}
+};
 
-PIXI.Strip.prototype.onTextureUpdate = function(event)
+proto.onTextureUpdate = function onTextureUpdate(event)
 {
     this.updateFrame = true;
-}
+};
 // some helper functions..
 
+module.exports = Strip;
