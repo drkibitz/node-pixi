@@ -6,7 +6,6 @@ describe('pixi/textures/Texture', function () {
 
     it('Module exists', function () {
         expect(Texture).to.be.a('function');
-        expect(PIXI).to.have.property('TextureCache').and.to.be.an('object');
     });
 
     it('Members exist',  function () {
@@ -16,6 +15,7 @@ describe('pixi/textures/Texture', function () {
         expect(Texture).itself.to.respondTo('addTextureToCache');
         expect(Texture).itself.to.respondTo('removeTextureFromCache');
 
+        expect(Texture).itself.to.have.property('cache').and.to.be.an('object');
         expect(Texture).itself.to.have.deep.property('frameUpdates.length', 0);
     });
 

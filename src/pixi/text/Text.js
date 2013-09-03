@@ -1,6 +1,12 @@
 /**
  * @author Mat Groves http://matgroves.com/ @Doormat23
  */
+'use strict';
+
+var globals = require('../core/globals');
+var Point = require('../geom/Point');
+var Sprite = require('../display/Sprite');
+var Texture = require('../textures/Texture');
 
 /**
  * A Text Object will create a line(s) of text to split a line you can use "\n"
@@ -18,22 +24,23 @@
  * @param [style.wordWrap=false] {Boolean} Indicates if word wrap should be used
  * @param [style.wordWrapWidth=100] {Number} The width at which text will wrap
  */
-PIXI.Text = function(text, style)
+function Text(text, style)
 {
     this.canvas = document.createElement("canvas");
     this.context = this.canvas.getContext("2d");
-    PIXI.Sprite.call(this, PIXI.Texture.fromCanvas(this.canvas));
+    Sprite.call(this, Texture.fromCanvas(this.canvas));
 
     this.setText(text);
     this.setStyle(style);
 
     this.updateText();
     this.dirty = false;
-};
+}
 
 // constructor
-PIXI.Text.prototype = Object.create(PIXI.Sprite.prototype);
-PIXI.Text.prototype.constructor = PIXI.Text;
+var proto = Text.prototype = Object.create(Sprite.prototype, {
+    constructor: {value: Text}
+});
 
 /**
  * Set the style of the text
@@ -48,7 +55,7 @@ PIXI.Text.prototype.constructor = PIXI.Text;
  * @param [style.wordWrap=false] {Boolean} Indicates if word wrap should be used
  * @param [style.wordWrapWidth=100] {Number} The width at which text will wrap
  */
-PIXI.Text.prototype.setStyle = function(style)
+proto.setStyle = function setStyle(style)
 {
     style = style || {};
     style.font = style.font || "bold 20pt Arial";
@@ -68,7 +75,7 @@ PIXI.Text.prototype.setStyle = function(style)
  * @methos setText
  * @param {String} text The copy that you would like the text to display
  */
-PIXI.Sprite.prototype.setText = function(text)
+proto.setText = function setText(text)
 {
     this.text = text.toString() || " ";
     this.dirty = true;
@@ -80,7 +87,7 @@ PIXI.Sprite.prototype.setText = function(text)
  * @method updateText
  * @private
  */
-PIXI.Text.prototype.updateText = function()
+proto.updateText = function updateText()
 {
     this.context.font = this.style.font;
 
@@ -120,7 +127,7 @@ PIXI.Text.prototype.updateText = function()
     //draw lines line by line
     for (i = 0; i < lines.length; i++)
     {
-        var linePosition = new PIXI.Point(this.style.strokeThickness / 2, this.style.strokeThickness / 2 + i * lineHeight);
+        var linePosition = new Point(this.style.strokeThickness / 2, this.style.strokeThickness / 2 + i * lineHeight);
 
         if(this.style.align == "right")
         {
@@ -151,7 +158,7 @@ PIXI.Text.prototype.updateText = function()
  * @method updateTexture
  * @private
  */
-PIXI.Text.prototype.updateTexture = function()
+proto.updateTexture = function updateTexture()
 {
     this.texture.baseTexture.width = this.canvas.width;
     this.texture.baseTexture.height = this.canvas.height;
@@ -161,7 +168,7 @@ PIXI.Text.prototype.updateTexture = function()
     this._width = this.canvas.width;
     this._height = this.canvas.height;
 
-    PIXI.texturesToUpdate.push(this.texture.baseTexture);
+    globals.texturesToUpdate.push(this.texture.baseTexture);
 };
 
 /**
@@ -170,7 +177,7 @@ PIXI.Text.prototype.updateTexture = function()
  * @method updateTransform
  * @private
  */
-PIXI.Text.prototype.updateTransform = function()
+proto.updateTransform = function updateTransform()
 {
     if(this.dirty)
     {
@@ -178,7 +185,7 @@ PIXI.Text.prototype.updateTransform = function()
         this.dirty = false;
     }
 
-    PIXI.Sprite.prototype.updateTransform.call(this);
+    Sprite.prototype.updateTransform.call(this);
 };
 
 /*
@@ -189,11 +196,11 @@ PIXI.Text.prototype.updateTransform = function()
  * @param fontStyle {Object}
  * @private
  */
-PIXI.Text.prototype.determineFontHeight = function(fontStyle)
+proto.determineFontHeight = function determineFontHeight(fontStyle)
 {
     // build a little reference dictionary so if the font style has been used return a
     // cached version...
-    var result = PIXI.Text.heightCache[fontStyle];
+    var result = Text.heightCache[fontStyle];
 
     if(!result)
     {
@@ -205,7 +212,7 @@ PIXI.Text.prototype.determineFontHeight = function(fontStyle)
         body.appendChild(dummy);
 
         result = dummy.offsetHeight;
-        PIXI.Text.heightCache[fontStyle] = result;
+        Text.heightCache[fontStyle] = result;
 
         body.removeChild(dummy);
     }
@@ -220,7 +227,7 @@ PIXI.Text.prototype.determineFontHeight = function(fontStyle)
  * @param text {String}
  * @private
  */
-PIXI.Text.prototype.wordWrap = function(text)
+proto.wordWrap = function wordWrap(text)
 {
     // search good wrap position
     function searchWrapPos(ctx, text, start, end, wrapWidth)
@@ -273,7 +280,7 @@ PIXI.Text.prototype.wordWrap = function(text)
  * @method destroy
  * @param destroyTexture {Boolean}
  */
-PIXI.Text.prototype.destroy = function(destroyTexture)
+proto.destroy = function destroy(destroyTexture)
 {
     if(destroyTexture)
     {
@@ -282,4 +289,6 @@ PIXI.Text.prototype.destroy = function(destroyTexture)
 
 };
 
-PIXI.Text.heightCache = {};
+Text.heightCache = {};
+
+module.exports = Text;

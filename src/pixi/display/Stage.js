@@ -1,6 +1,15 @@
 /**
  * @author Mat Groves http://matgroves.com/ @Doormat23
  */
+'use strict';
+
+var globals = require('../core/globals');
+var mat3 = require('../geom/matrix').mat3;
+var hex2rgb = require('../utils/color').hex2rgb;
+
+var DisplayObjectContainer = require('./DisplayObjectContainer');
+var InteractionManager = require('../InteractionManager');
+var Rectangle = require('../geom/Rectangle');
 
 /**
  * A Stage represents the root of the display tree. Everything connected to the stage is rendered
@@ -12,9 +21,9 @@
  *      like: 0xFFFFFF for white
  * @param interactive {Boolean} enable / disable interaction (default is false)
  */
-PIXI.Stage = function(backgroundColor, interactive)
+function Stage(backgroundColor, interactive)
 {
-    PIXI.DisplayObjectContainer.call( this );
+    DisplayObjectContainer.call(this);
 
     /**
      * [read-only] Current transform of the object based on world (parent) factors
@@ -24,7 +33,7 @@ PIXI.Stage = function(backgroundColor, interactive)
      * @readOnly
      * @private
      */
-    this.worldTransform = PIXI.mat3.create();
+    this.worldTransform = mat3.create();
 
     /**
      * Whether or not the stage is interactive
@@ -40,7 +49,7 @@ PIXI.Stage = function(backgroundColor, interactive)
      * @property interactive
      * @type InteractionManager
      */
-    this.interactionManager = new PIXI.InteractionManager(this);
+    this.interactionManager = new InteractionManager(this);
 
     /**
      * Whether the stage is dirty and needs to have interactions updated
@@ -58,15 +67,15 @@ PIXI.Stage = function(backgroundColor, interactive)
     this.stage = this;
 
     //optimize hit detection a bit
-    this.stage.hitArea = new PIXI.Rectangle(0,0,100000, 100000);
+    this.stage.hitArea = new Rectangle(0,0,100000, 100000);
 
     this.setBackgroundColor(backgroundColor);
     this.worldVisible = true;
 }
 
-// constructor
-PIXI.Stage.prototype = Object.create( PIXI.DisplayObjectContainer.prototype );
-PIXI.Stage.prototype.constructor = PIXI.Stage;
+var proto = Stage.prototype = Object.create(DisplayObjectContainer.prototype, {
+    constructor: {value: Stage}
+});
 
 /**
  * Sets another DOM element which can receive mouse/touch interactions instead of the default Canvas element.
@@ -75,10 +84,10 @@ PIXI.Stage.prototype.constructor = PIXI.Stage;
  * @method setInteractionDelegate
  * @param domElement {DOMElement} This new domElement which will receive mouse/touch events
  */
-PIXI.Stage.prototype.setInteractionDelegate = function(domElement)
+proto.setInteractionDelegate = function setInteractionDelegate(domElement)
 {
 	this.interactionManager.setTargetDomElement( domElement );
-}
+};
 
 /*
  * Updates the object transform for rendering
@@ -86,10 +95,10 @@ PIXI.Stage.prototype.setInteractionDelegate = function(domElement)
  * @method updateTransform
  * @private
  */
-PIXI.Stage.prototype.updateTransform = function()
+proto.updateTransform = function updateTransform()
 {
     this.worldAlpha = 1;
-    this.vcount = PIXI.visibleCount;
+    this.vcount = globals.visibleCount;
 
     for(var i=0,j=this.children.length; i<j; i++)
     {
@@ -105,7 +114,7 @@ PIXI.Stage.prototype.updateTransform = function()
 
 
     if(this.interactive)this.interactionManager.update();
-}
+};
 
 /**
  * Sets the background color for the stage
@@ -114,14 +123,14 @@ PIXI.Stage.prototype.updateTransform = function()
  * @param backgroundColor {Number} the color of the background, easiest way to pass this in is in hex format
  *      like: 0xFFFFFF for white
  */
-PIXI.Stage.prototype.setBackgroundColor = function(backgroundColor)
+proto.setBackgroundColor = function setBackgroundColor(backgroundColor)
 {
     this.backgroundColor = backgroundColor || 0x000000;
     this.backgroundColorSplit = hex2rgb(this.backgroundColor);
     var hex = this.backgroundColor.toString(16);
     hex = "000000".substr(0, 6 - hex.length) + hex;
     this.backgroundColorString = "#" + hex;
-}
+};
 
 /**
  * This will return the point containing global coords of the mouse.
@@ -129,7 +138,9 @@ PIXI.Stage.prototype.setBackgroundColor = function(backgroundColor)
  * @method getMousePosition
  * @return {Point} The point containing the coords of the global InteractionData position.
  */
-PIXI.Stage.prototype.getMousePosition = function()
+proto.getMousePosition = function getMousePosition()
 {
     return this.interactionManager.mouse.global;
-}
+};
+
+module.exports = Stage;

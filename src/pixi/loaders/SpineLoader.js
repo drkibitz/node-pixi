@@ -6,6 +6,13 @@
  * https://github.com/EsotericSoftware/spine-runtimes
  *
  */
+'use strict';
+
+var AssetLoader = require('./AssetLoader');
+var JsonLoader = require('./JsonLoader');
+var EventTarget = require('../events/EventTarget');
+var Spine = require('../extras/Spine');
+var SkeletonJson = require('../utils/spine').SkeletonJson;
 
 /**
  * The Spine loader is used to load in JSON spine data
@@ -21,9 +28,9 @@
  * @param url {String} The url of the JSON file
  * @param crossorigin {Boolean} Whether requests should be treated as crossorigin
  */
-PIXI.SpineLoader = function(url, crossorigin)
+function SpineLoader(url, crossorigin)
 {
-    PIXI.EventTarget.call(this);
+    EventTarget.call(this);
 
     /**
      * The url of the bitmap font data
@@ -51,17 +58,17 @@ PIXI.SpineLoader = function(url, crossorigin)
     this.loaded = false;
 }
 
-PIXI.SpineLoader.prototype.constructor = PIXI.SpineLoader;
+var proto = SpineLoader.prototype;
 
 /**
  * Loads the JSON data
  *
  * @method load
  */
-PIXI.SpineLoader.prototype.load = function () {
-
+proto.load = function load()
+{
     var scope = this;
-    var jsonLoader = new PIXI.JsonLoader(this.url, this.crossorigin);
+    var jsonLoader = new JsonLoader(this.url, this.crossorigin);
     jsonLoader.addEventListener("loaded", function (event) {
         scope.json = event.content.json;
         scope.onJSONLoaded();
@@ -75,11 +82,12 @@ PIXI.SpineLoader.prototype.load = function () {
  * @method onJSONLoaded
  * @private
  */
-PIXI.SpineLoader.prototype.onJSONLoaded = function (event) {
-    var spineJsonParser = new spine.SkeletonJson();
+proto.onJSONLoaded = function onJSONLoaded(event)
+{
+    var spineJsonParser = new SkeletonJson();
     var skeletonData = spineJsonParser.readSkeletonData(this.json);
 
-    PIXI.AnimCache[this.url] = skeletonData;
+    Spine.animCache[this.url] = skeletonData;
 
     this.onLoaded();
 };
@@ -90,8 +98,13 @@ PIXI.SpineLoader.prototype.onJSONLoaded = function (event) {
  * @method onLoaded
  * @private
  */
-PIXI.SpineLoader.prototype.onLoaded = function () {
+proto.onLoaded = function onLoaded()
+{
     this.loaded = true;
     this.dispatchEvent({type: "loaded", content: this});
 };
+
+AssetLoader.registerLoaderType('anim', SpineLoader);
+
+module.exports = SpineLoader;
 

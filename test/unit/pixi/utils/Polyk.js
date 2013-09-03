@@ -9,6 +9,6 @@ describe('pixi/utils/Polyk', function () {
     });
 
     it('Members exist', function () {
-        expect(PolyK).to.respondTo('Triangulate');
+        expect(PolyK).to.respondTo('triangulate');
     });
 });

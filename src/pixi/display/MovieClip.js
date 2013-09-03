@@ -1,6 +1,9 @@
 /**
  * @author Mat Groves http://matgroves.com/ @Doormat23
  */
+'use strict';
+
+var Sprite = require('./Sprite');
 
 /**
  * A MovieClip is a simple way to display an animation depicted by a list of textures.
@@ -10,9 +13,9 @@
  * @constructor
  * @param textures {Array<Texture>} an array of {Texture} objects that make up the animation
  */
-PIXI.MovieClip = function(textures)
+function MovieClip(textures)
 {
-    PIXI.Sprite.call(this, textures[0]);
+    Sprite.call(this, textures[0]);
 
     /**
      * The array of textures that make up the animation
@@ -68,16 +71,16 @@ PIXI.MovieClip = function(textures)
     this.playing = false;
 }
 
-// constructor
-PIXI.MovieClip.prototype = Object.create( PIXI.Sprite.prototype );
-PIXI.MovieClip.prototype.constructor = PIXI.MovieClip;
+var proto = MovieClip.prototype = Object.create(Sprite.prototype, {
+    constructor: {value: MovieClip}
+});
 
 /**
  * Stops the MovieClip
  *
  * @method stop
  */
-PIXI.MovieClip.prototype.stop = function()
+proto.stop = function()
 {
     this.playing = false;
 }
@@ -87,7 +90,7 @@ PIXI.MovieClip.prototype.stop = function()
  *
  * @method play
  */
-PIXI.MovieClip.prototype.play = function()
+proto.play = function()
 {
     this.playing = true;
 }
@@ -98,7 +101,7 @@ PIXI.MovieClip.prototype.play = function()
  * @method gotoAndStop
  * @param frameNumber {Number} frame index to stop at
  */
-PIXI.MovieClip.prototype.gotoAndStop = function(frameNumber)
+proto.gotoAndStop = function(frameNumber)
 {
     this.playing = false;
     this.currentFrame = frameNumber;
@@ -112,11 +115,11 @@ PIXI.MovieClip.prototype.gotoAndStop = function(frameNumber)
  * @method gotoAndPlay
  * @param frameNumber {Number} frame index to start at
  */
-PIXI.MovieClip.prototype.gotoAndPlay = function(frameNumber)
+proto.gotoAndPlay = function gotoAndPlay(frameNumber)
 {
     this.currentFrame = frameNumber;
     this.playing = true;
-}
+};
 
 /*
  * Updates the object transform for rendering
@@ -124,9 +127,9 @@ PIXI.MovieClip.prototype.gotoAndPlay = function(frameNumber)
  * @method updateTransform
  * @private
  */
-PIXI.MovieClip.prototype.updateTransform = function()
+proto.updateTransform = function updateTransform()
 {
-    PIXI.Sprite.prototype.updateTransform.call(this);
+    Sprite.prototype.updateTransform.call(this);
 
     if(!this.playing)return;
 
@@ -146,4 +149,6 @@ PIXI.MovieClip.prototype.updateTransform = function()
             this.onComplete();
         }
     }
-}
+};
+
+module.exports = MovieClip;

@@ -1,13 +1,16 @@
 /**
  * @author Mat Groves http://matgroves.com/ @Doormat23
  */
+'use strict';
 
-PIXI.TextureCache = {};
-PIXI.FrameCache = {};
+var BaseTexture = require('./BaseTexture');
+var Point = require('../geom/Point');
+var Rectangle = require('../geom/Rectangle');
+var EventTarget = require('../events/EventTarget');
 
 /**
  * A texture stores the information that represents an image or part of an image. It cannot be added
- * to the display list directly. To do this use PIXI.Sprite. If no frame is provided then the whole image is used
+ * to the display list directly. To do this use Sprite. If no frame is provided then the whole image is used
  *
  * @class Texture
  * @uses EventTarget
@@ -15,17 +18,17 @@ PIXI.FrameCache = {};
  * @param baseTexture {BaseTexture} The base texture source to create the texture from
  * @param frmae {Rectangle} The rectangle frame of the texture to show
  */
-PIXI.Texture = function(baseTexture, frame)
+function Texture(baseTexture, frame)
 {
-    PIXI.EventTarget.call( this );
+    EventTarget.call( this );
 
     if(!frame)
     {
         this.noFrame = true;
-        frame = new PIXI.Rectangle(0,0,1,1);
+        frame = new Rectangle(0,0,1,1);
     }
 
-    if(baseTexture instanceof PIXI.Texture)
+    if(baseTexture instanceof Texture)
         baseTexture = baseTexture.baseTexture;
 
     /**
@@ -50,13 +53,13 @@ PIXI.Texture = function(baseTexture, frame)
      * @property trim
      * @type Point
      */
-    this.trim = new PIXI.Point();
+    this.trim = new Point();
 
     this.scope = this;
 
     if(baseTexture.hasLoaded)
     {
-        if(this.noFrame)frame = new PIXI.Rectangle(0,0, baseTexture.width, baseTexture.height);
+        if(this.noFrame)frame = new Rectangle(0,0, baseTexture.width, baseTexture.height);
         //console.log(frame)
 
         this.setFrame(frame);
@@ -68,7 +71,7 @@ PIXI.Texture = function(baseTexture, frame)
     }
 }
 
-PIXI.Texture.prototype.constructor = PIXI.Texture;
+var proto = Texture.prototype;
 
 /**
  * Called when the base texture is loaded
@@ -77,18 +80,18 @@ PIXI.Texture.prototype.constructor = PIXI.Texture;
  * @param event
  * @private
  */
-PIXI.Texture.prototype.onBaseTextureLoaded = function(event)
+proto.onBaseTextureLoaded = function onBaseTextureLoaded(event)
 {
     var baseTexture = this.baseTexture;
     baseTexture.removeEventListener( 'loaded', this.onLoaded );
 
-    if(this.noFrame)this.frame = new PIXI.Rectangle(0,0, baseTexture.width, baseTexture.height);
+    if(this.noFrame)this.frame = new Rectangle(0,0, baseTexture.width, baseTexture.height);
     this.noFrame = false;
     this.width = this.frame.width;
     this.height = this.frame.height;
 
     this.scope.dispatchEvent( { type: 'update', content: this } );
-}
+};
 
 /**
  * Destroys this texture
@@ -96,10 +99,10 @@ PIXI.Texture.prototype.onBaseTextureLoaded = function(event)
  * @method destroy
  * @param destroyBase {Boolean} Whether to destroy the base texture as well
  */
-PIXI.Texture.prototype.destroy = function(destroyBase)
+proto.destroy = function destroy(destroyBase)
 {
     if(destroyBase)this.baseTexture.destroy();
-}
+};
 
 /**
  * Specifies the rectangle region of the baseTexture
@@ -107,7 +110,7 @@ PIXI.Texture.prototype.destroy = function(destroyBase)
  * @method setFrame
  * @param frame {Rectangle} The frame of the texture to set it to
  */
-PIXI.Texture.prototype.setFrame = function(frame)
+proto.setFrame = function setFrame(frame)
 {
     this.frame = frame;
     this.width = frame.width;
@@ -120,9 +123,9 @@ PIXI.Texture.prototype.setFrame = function(frame)
 
     this.updateFrame = true;
 
-    PIXI.Texture.frameUpdates.push(this);
+    Texture.frameUpdates.push(this);
     //this.dispatchEvent( { type: 'update', content: this } );
-}
+};
 
 /**
  * Helper function that returns a texture based on an image url
@@ -134,18 +137,18 @@ PIXI.Texture.prototype.setFrame = function(frame)
  * @param crossorigin {Boolean} Whether requests should be treated as crossorigin
  * @return Texture
  */
-PIXI.Texture.fromImage = function(imageUrl, crossorigin)
+Texture.fromImage = function fromImage(imageUrl, crossorigin)
 {
-    var texture = PIXI.TextureCache[imageUrl];
+    var texture = Texture.cache[imageUrl];
 
     if(!texture)
     {
-        texture = new PIXI.Texture(PIXI.BaseTexture.fromImage(imageUrl, crossorigin));
-        PIXI.TextureCache[imageUrl] = texture;
+        texture = new Texture(BaseTexture.fromImage(imageUrl, crossorigin));
+        Texture.cache[imageUrl] = texture;
     }
 
     return texture;
-}
+};
 
 /**
  * Helper function that returns a texture based on a frame id
@@ -156,12 +159,12 @@ PIXI.Texture.fromImage = function(imageUrl, crossorigin)
  * @param frameId {String} The frame id of the texture
  * @return Texture
  */
-PIXI.Texture.fromFrame = function(frameId)
+Texture.fromFrame = function fromFrame(frameId)
 {
-    var texture = PIXI.TextureCache[frameId];
+    var texture = Texture.cache[frameId];
     if(!texture)throw new Error("The frameId '"+ frameId +"' does not exist in the texture cache " + this);
     return texture;
-}
+};
 
 /**
  * Helper function that returns a texture based on a canvas element
@@ -172,11 +175,11 @@ PIXI.Texture.fromFrame = function(frameId)
  * @param canvas {Canvas} The canvas element source of the texture
  * @return Texture
  */
-PIXI.Texture.fromCanvas = function(canvas)
+Texture.fromCanvas = function fromCanvas(canvas)
 {
-    var baseTexture = new PIXI.BaseTexture(canvas);
-    return new PIXI.Texture(baseTexture);
-}
+    var baseTexture = new BaseTexture(canvas);
+    return new Texture(baseTexture);
+};
 
 
 /**
@@ -187,10 +190,10 @@ PIXI.Texture.fromCanvas = function(canvas)
  * @param texture {Texture}
  * @param id {String} the id that the texture will be stored against.
  */
-PIXI.Texture.addTextureToCache = function(texture, id)
+Texture.addTextureToCache = function addTextureToCache(texture, id)
 {
-    PIXI.TextureCache[id] = texture;
-}
+    Texture.cache[id] = texture;
+};
 
 /**
  * Remove a texture from the textureCache.
@@ -200,13 +203,15 @@ PIXI.Texture.addTextureToCache = function(texture, id)
  * @param id {String} the id of the texture to be removed
  * @return {Texture} the texture that was removed
  */
-PIXI.Texture.removeTextureFromCache = function(id)
+Texture.removeTextureFromCache = function removeTextureFromCache(id)
 {
-    var texture = PIXI.TextureCache[id]
-    PIXI.TextureCache[id] = null;
+    var texture = Texture.cache[id]
+    Texture.cache[id] = null;
     return texture;
-}
+};
 
+Texture.cache = {};
 // this is more for webGL.. it contains updated frames..
-PIXI.Texture.frameUpdates = [];
+Texture.frameUpdates = [];
 
+module.exports = Texture;

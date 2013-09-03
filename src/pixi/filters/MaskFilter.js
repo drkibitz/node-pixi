@@ -1,12 +1,12 @@
 /**
  * @author Mat Groves http://matgroves.com/ @Doormat23
  */
+'use strict';
 
-
-
-PIXI.MaskFilter = function(graphics)
+function MaskFilter(graphics)
 {
     // the graphics data that will be used for filtering
-    this.graphics;
+    this.graphics = graphics;
 }
 
+module.exports = MaskFilter;

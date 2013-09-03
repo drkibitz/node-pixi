@@ -1,7 +1,9 @@
 /**
  * @author Mat Groves http://matgroves.com/ @Doormat23
  */
+'use strict';
 
+var DisplayObject = require('./DisplayObject');
 
 /**
  * A DisplayObjectContainer represents a collection of display objects.
@@ -11,9 +13,9 @@
  * @extends DisplayObject
  * @constructor
  */
-PIXI.DisplayObjectContainer = function()
+function DisplayObjectContainer()
 {
-    PIXI.DisplayObject.call( this );
+    DisplayObject.call(this);
 
     /**
      * [read-only] The of children of this container.
@@ -25,13 +27,13 @@ PIXI.DisplayObjectContainer = function()
     this.children = [];
 }
 
-// constructor
-PIXI.DisplayObjectContainer.prototype = Object.create( PIXI.DisplayObject.prototype );
-PIXI.DisplayObjectContainer.prototype.constructor = PIXI.DisplayObjectContainer;
+var proto = DisplayObjectContainer.prototype = Object.create(DisplayObject.prototype, {
+    constructor: {value: DisplayObjectContainer}
+});
 
 //TODO make visible a getter setter
 /*
-Object.defineProperty(PIXI.DisplayObjectContainer.prototype, 'visible', {
+Object.defineProperty(proto, 'visible', {
     get: function() {
         return this._visible;
     },
@@ -47,7 +49,7 @@ Object.defineProperty(PIXI.DisplayObjectContainer.prototype, 'visible', {
  * @method addChild
  * @param child {DisplayObject} The DisplayObject to add to the container
  */
-PIXI.DisplayObjectContainer.prototype.addChild = function(child)
+proto.addChild = function addChild(child)
 {
     if (child.parent) {
         //// COULD BE THIS???
@@ -123,8 +125,7 @@ PIXI.DisplayObjectContainer.prototype.addChild = function(child)
         // add them to the new render group..
         this.__renderGroup.addDisplayObjectAndChildren(child);
     }
-
-}
+};
 
 /**
  * Adds a child to the container at a specified index. If the index is out of bounds an error will be thrown
@@ -133,7 +134,7 @@ PIXI.DisplayObjectContainer.prototype.addChild = function(child)
  * @param child {DisplayObject} The child to add
  * @param index {Number} The index to place the child in
  */
-PIXI.DisplayObjectContainer.prototype.addChildAt = function(child, index)
+proto.addChildAt = function addChildAt(child, index)
 {
     if(index >= 0 && index <= this.children.length)
     {
@@ -210,7 +211,7 @@ PIXI.DisplayObjectContainer.prototype.addChildAt = function(child, index)
     {
         throw new Error(child + " The index "+ index +" supplied is out of bounds " + this.children.length);
     }
-}
+};
 
 /**
  * [NYI] Swaps the depth of 2 displayObjects
@@ -220,7 +221,7 @@ PIXI.DisplayObjectContainer.prototype.addChildAt = function(child, index)
  * @param child2 {DisplayObject}
  * @private
  */
-PIXI.DisplayObjectContainer.prototype.swapChildren = function(child, child2)
+proto.swapChildren = function swapChildren(child, child2)
 {
     /*
      * this funtion needs to be recoded..
@@ -259,7 +260,7 @@ PIXI.DisplayObjectContainer.prototype.swapChildren = function(child, child2)
     {
         throw new Error(child + " Both the supplied DisplayObjects must be a child of the caller " + this);
     }*/
-}
+};
 
 /**
  * Returns the Child at the specified index
@@ -267,7 +268,7 @@ PIXI.DisplayObjectContainer.prototype.swapChildren = function(child, child2)
  * @method getChildAt
  * @param index {Number} The index to get the child from
  */
-PIXI.DisplayObjectContainer.prototype.getChildAt = function(index)
+proto.getChildAt = function getChildAt(index)
 {
     if(index >= 0 && index < this.children.length)
     {
@@ -275,9 +276,9 @@ PIXI.DisplayObjectContainer.prototype.getChildAt = function(index)
     }
     else
     {
-        throw new Error(child + " Both the supplied DisplayObjects must be a child of the caller " + this);
+        throw new RangeError("The supplied index is out of bounds");
     }
-}
+};
 
 /**
  * Removes a child from the container.
@@ -285,7 +286,7 @@ PIXI.DisplayObjectContainer.prototype.getChildAt = function(index)
  * @method removeChild
  * @param child {DisplayObject} The DisplayObject to remove
  */
-PIXI.DisplayObjectContainer.prototype.removeChild = function(child)
+proto.removeChild = function removeChild(child)
 {
     var index = this.children.indexOf( child );
     if ( index !== -1 )
@@ -343,7 +344,7 @@ PIXI.DisplayObjectContainer.prototype.removeChild = function(child)
     {
         throw new Error(child + " The supplied DisplayObject must be a child of the caller " + this);
     }
-}
+};
 
 /*
  * Updates the container's children's transform for rendering
@@ -351,14 +352,16 @@ PIXI.DisplayObjectContainer.prototype.removeChild = function(child)
  * @method updateTransform
  * @private
  */
-PIXI.DisplayObjectContainer.prototype.updateTransform = function()
+proto.updateTransform = function updateTransform()
 {
     if(!this.visible)return;
 
-    PIXI.DisplayObject.prototype.updateTransform.call( this );
+    DisplayObject.prototype.updateTransform.call( this );
 
     for(var i=0,j=this.children.length; i<j; i++)
     {
         this.children[i].updateTransform();
     }
-}
+};
+
+module.exports = DisplayObjectContainer;

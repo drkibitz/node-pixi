@@ -12,11 +12,11 @@ function pixi_display_DisplayObject_confirmNew(obj) {
     expect(obj).to.have.property('first', obj);
 
     expect(obj).to.contain.property('position');
-    pixi_core_Point_confirm(obj.position, 0, 0);
+    pixi_geom_Point_confirm(obj.position, 0, 0);
     expect(obj).to.contain.property('scale');
-    pixi_core_Point_confirm(obj.scale, 1, 1);
+    pixi_geom_Point_confirm(obj.scale, 1, 1);
     expect(obj).to.contain.property('pivot');
-    pixi_core_Point_confirm(obj.pivot, 0, 0);
+    pixi_geom_Point_confirm(obj.pivot, 0, 0);
 
     expect(obj).to.have.property('rotation', 0);
     expect(obj).to.have.property('alpha', 1);
@@ -34,9 +34,9 @@ function pixi_display_DisplayObject_confirmNew(obj) {
     expect(obj).to.have.property('stage');
 
     expect(obj).to.have.deep.property('worldTransform.length', 9);
-    pixi_core_Matrix_confirmNewMat3(obj.worldTransform);
+    pixi_geom_matrix_confirmNewMat3(obj.worldTransform);
     expect(obj).to.have.deep.property('localTransform.length', 9);
-    pixi_core_Matrix_confirmNewMat3(obj.localTransform);
+    pixi_geom_matrix_confirmNewMat3(obj.localTransform);
 
     expect(obj).to.have.deep.property('color.length', 0);
     expect(obj).to.have.property('dynamic', true);

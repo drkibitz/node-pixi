@@ -1,10 +1,11 @@
 /**
  * @author Mat Groves http://matgroves.com/ @Doormat23
  */
+'use strict';
 
-PIXI.BaseTextureCache = {};
-PIXI.texturesToUpdate = [];
-PIXI.texturesToDestroy = [];
+var globals = require('../core/globals');
+var EventTarget = require('../events/EventTarget');
+var baseTextureCache = {};
 
 /**
  * A texture stores the information that represents an image. All textures have a base texture
@@ -14,9 +15,9 @@ PIXI.texturesToDestroy = [];
  * @constructor
  * @param source {String} the source object (image or canvas)
  */
-PIXI.BaseTexture = function(source)
+function BaseTexture(source)
 {
-    PIXI.EventTarget.call( this );
+    EventTarget.call(this);
 
     /**
      * [read-only] The width of the base texture set when the image has loaded
@@ -63,7 +64,7 @@ PIXI.BaseTexture = function(source)
             this.width = this.source.width;
             this.height = this.source.height;
 
-            PIXI.texturesToUpdate.push(this);
+            globals.texturesToUpdate.push(this);
         }
         else
         {
@@ -76,7 +77,7 @@ PIXI.BaseTexture = function(source)
                 scope.height = scope.source.height;
 
                 // add it to somewhere...
-                PIXI.texturesToUpdate.push(scope);
+                globals.texturesToUpdate.push(scope);
                 scope.dispatchEvent( { type: 'loaded', content: scope } );
             }
             //  this.image.src = imageUrl;
@@ -88,28 +89,28 @@ PIXI.BaseTexture = function(source)
         this.width = this.source.width;
         this.height = this.source.height;
 
-        PIXI.texturesToUpdate.push(this);
+        globals.texturesToUpdate.push(this);
     }
 
     this._powerOf2 = false;
 }
 
-PIXI.BaseTexture.prototype.constructor = PIXI.BaseTexture;
+var proto = BaseTexture.prototype;
 
 /**
  * Destroys this base texture
  *
  * @method destroy
  */
-PIXI.BaseTexture.prototype.destroy = function()
+proto.destroy = function destroy()
 {
     if(this.source instanceof Image)
     {
         this.source.src = null;
     }
     this.source = null;
-    PIXI.texturesToDestroy.push(this);
-}
+    globals.texturesToDestroy.push(this);
+};
 
 /**
  * Helper function that returns a base texture based on an image url
@@ -120,9 +121,9 @@ PIXI.BaseTexture.prototype.destroy = function()
  * @param imageUrl {String} The image url of the texture
  * @return BaseTexture
  */
-PIXI.BaseTexture.fromImage = function(imageUrl, crossorigin)
+BaseTexture.fromImage = function fromImage(imageUrl, crossorigin)
 {
-    var baseTexture = PIXI.BaseTextureCache[imageUrl];
+    var baseTexture = baseTextureCache[imageUrl];
     if(!baseTexture)
     {
         // new Image() breaks tex loading in some versions of Chrome.
@@ -133,9 +134,11 @@ PIXI.BaseTexture.fromImage = function(imageUrl, crossorigin)
             image.crossOrigin = '';
         }
         image.src = imageUrl;
-        baseTexture = new PIXI.BaseTexture(image);
-        PIXI.BaseTextureCache[imageUrl] = baseTexture;
+        baseTexture = new BaseTexture(image);
+        baseTextureCache[imageUrl] = baseTexture;
     }
 
     return baseTexture;
-}
+};
+
+module.exports = BaseTexture;

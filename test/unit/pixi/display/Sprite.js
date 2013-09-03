@@ -7,8 +7,6 @@ describe('pixi/display/Sprite', function () {
 
     it('Module exists', function () {
         expect(Sprite).to.be.a('function');
-        expect(PIXI).to.have.deep.property('blendModes.NORMAL', 0);
-        expect(PIXI).to.have.deep.property('blendModes.SCREEN', 1);
     });
 
     it('Members exist',  function () {

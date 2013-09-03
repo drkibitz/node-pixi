@@ -3,7 +3,7 @@
     "maxerr"        : 0,
     "browser"       : true,
 
-    "node"          : false,
+    "node"          : true,
     "rhino"         : false,
     "couch"         : false,
     "wsh"           : false,

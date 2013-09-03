@@ -1,38 +1,39 @@
 /**
  * @author Mat Groves http://matgroves.com/
  */
+'use strict';
 
+var Strip = require('./Strip');
+var DisplayObjectContainer = require('../display/DisplayObjectContainer');
 
-PIXI.Rope = function(texture, points)
+function Rope(texture, points)
 {
-    PIXI.Strip.call( this, texture );
+    Strip.call(this, texture);
     this.points = points;
 
     try
     {
-        this.verticies = new Float32Array( points.length * 4);
-        this.uvs = new Float32Array( points.length * 4);
-        this.colors = new Float32Array(  points.length * 2);
-        this.indices = new Uint16Array( points.length * 2);
+        this.verticies = new Float32Array(points.length * 4);
+        this.uvs = new Float32Array(points.length * 4);
+        this.colors = new Float32Array(points.length * 2);
+        this.indices = new Uint16Array(points.length * 2);
     }
     catch(error)
     {
-        this.verticies = verticies
-
-        this.uvs = uvs
-        this.colors = colors
-        this.indices = indices
+        this.verticies = [];
+        this.uvs = [];
+        this.colors = [];
+        this.indices = [];
     }
 
     this.refresh();
 }
 
+var proto = Rope.prototype = Object.create(Strip.prototype, {
+    constructor: {value: Rope}
+});
 
-// constructor
-PIXI.Rope.prototype = Object.create( PIXI.Strip.prototype );
-PIXI.Rope.prototype.constructor = PIXI.Rope;
-
-PIXI.Rope.prototype.refresh = function()
+proto.refresh = function refresh()
 {
     var points = this.points;
     if(points.length < 1)return;
@@ -98,9 +99,9 @@ PIXI.Rope.prototype.refresh = function()
 
         lastPoint = point;
     }
-}
+};
 
-PIXI.Rope.prototype.updateTransform = function()
+proto.updateTransform = function updateTransform()
 {
 
     var points = this.points;
@@ -158,16 +159,14 @@ PIXI.Rope.prototype.updateTransform = function()
         lastPoint = point;
     }
 
-    PIXI.DisplayObjectContainer.prototype.updateTransform.call( this );
-}
+    DisplayObjectContainer.prototype.updateTransform.call( this );
+};
 
-PIXI.Rope.prototype.setTexture = function(texture)
+proto.setTexture = function setTexture(texture)
 {
     // stop current texture
     this.texture = texture;
     this.updateFrame = true;
-}
+};
 
-
-
-
+module.exports = Rope;

@@ -2,13 +2,19 @@
  * @author Mat Groves http://matgroves.com/ @Doormat23
  */
 
+var globals = require('../core/globals');
+var mat3 = require('../geom/matrix').mat3;
+
+var FilterBlock = require('../filters/FilterBlock');
+var Point = require('../geom/Point');
+
 /**
  * The base class for all objects that are rendered on the screen.
  *
  * @class DisplayObject
  * @constructor
  */
-PIXI.DisplayObject = function()
+function DisplayObject()
 {
     this.last = this;
     this.first = this;
@@ -19,7 +25,7 @@ PIXI.DisplayObject = function()
      * @property position
      * @type Point
      */
-    this.position = new PIXI.Point();
+    this.position = new Point();
 
     /**
      * The scale factor of the object.
@@ -27,7 +33,7 @@ PIXI.DisplayObject = function()
      * @property scale
      * @type Point
      */
-    this.scale = new PIXI.Point(1,1);//{x:1, y:1};
+    this.scale = new Point(1,1);//{x:1, y:1};
 
     /**
      * The pivot point of the displayObject that it rotates around
@@ -35,7 +41,7 @@ PIXI.DisplayObject = function()
      * @property pivot
      * @type Point
      */
-    this.pivot = new PIXI.Point(0,0);
+    this.pivot = new Point(0,0);
 
     /**
      * The rotation of the object in radians.
@@ -131,7 +137,7 @@ PIXI.DisplayObject = function()
      * @readOnly
      * @private
      */
-    this.worldTransform = PIXI.mat3.create()//mat3.identity();
+    this.worldTransform = mat3.create()//mat3.identity();
 
     /**
      * [read-only] Current transform of the object locally
@@ -141,7 +147,7 @@ PIXI.DisplayObject = function()
      * @readOnly
      * @private
      */
-    this.localTransform = PIXI.mat3.create()//mat3.identity();
+    this.localTransform = mat3.create()//mat3.identity();
 
     /**
      * [NYI] Unkown
@@ -238,22 +244,7 @@ PIXI.DisplayObject = function()
      * @param interactionData {InteractionData}
      */
 }
-
-// constructor
-PIXI.DisplayObject.prototype.constructor = PIXI.DisplayObject;
-
-/**
- * [Deprecated] Indicates if the sprite will have touch and mouse interactivity. It is false by default
- * Instead of using this function you can now simply set the interactive property to true or false
- *
- * @method setInteractive
- * @param interactive {Boolean}
- * @deprecated Simply set the `interactive` property directly
- */
-PIXI.DisplayObject.prototype.setInteractive = function(interactive)
-{
-    this.interactive = interactive;
-}
+var proto = DisplayObject.prototype;
 
 /**
  * Indicates if the sprite will have touch and mouse interactivity. It is false by default
@@ -262,7 +253,7 @@ PIXI.DisplayObject.prototype.setInteractive = function(interactive)
  * @type Boolean
  * @default false
  */
-Object.defineProperty(PIXI.DisplayObject.prototype, 'interactive', {
+Object.defineProperty(proto, 'interactive', {
     get: function() {
         return this._interactive;
     },
@@ -277,13 +268,13 @@ Object.defineProperty(PIXI.DisplayObject.prototype, 'interactive', {
 
 /**
  * Sets a mask for the displayObject. A mask is an object that limits the visibility of an object to the shape of the mask applied to it.
- * In PIXI a regular mask must be a PIXI.Ggraphics object. This allows for much faster masking in canvas as it utilises shape clipping.
+ * In Pixi a regular mask must be a Graphics object. This allows for much faster masking in canvas as it utilises shape clipping.
  * To remove a mask, set this property to null.
  *
  * @property mask
  * @type Graphics
  */
-Object.defineProperty(PIXI.DisplayObject.prototype, 'mask', {
+Object.defineProperty(proto, 'mask', {
     get: function() {
         return this._mask;
     },
@@ -302,6 +293,20 @@ Object.defineProperty(PIXI.DisplayObject.prototype, 'mask', {
     }
 });
 
+/**
+ * [Deprecated] Indicates if the sprite will have touch and mouse interactivity. It is false by default
+ * Instead of using this function you can now simply set the interactive property to true or false
+ *
+ * @deprecated
+ * @method setInteractive
+ * @param interactive {Boolean}
+ * @deprecated Simply set the `interactive` property directly
+ */
+proto.setInteractive = function setInteractive(interactive)
+{
+    this.interactive = interactive;
+};
+
 /*
  * Adds a filter to this displayObject
  *
@@ -309,14 +314,14 @@ Object.defineProperty(PIXI.DisplayObject.prototype, 'mask', {
  * @param mask {Graphics} the graphics object to use as a filter
  * @private
  */
-PIXI.DisplayObject.prototype.addFilter = function(mask)
+proto.addFilter = function addFilter(mask)
 {
     if(this.filter)return;
     this.filter = true;
 
     // insert a filter block..
-    var start = new PIXI.FilterBlock();
-    var end = new PIXI.FilterBlock();
+    var start = new FilterBlock();
+    var end = new FilterBlock();
 
     start.mask = mask;
     end.mask = mask;
@@ -329,9 +334,11 @@ PIXI.DisplayObject.prototype.addFilter = function(mask)
     /*
      * insert start
      */
-    var childFirst, childLast, nextObject, previousObject;
-    childFirst = childLast = start;
 
+    var childFirst, childLast,
+        nextObject, previousObject;
+
+    childFirst = childLast = start;
     previousObject = this.first._iPrev;
 
     if(previousObject)
@@ -357,8 +364,10 @@ PIXI.DisplayObject.prototype.addFilter = function(mask)
     /*
      * insert end filter
      */
-    childFirst = childLast = end
-    nextObject = previousObject = null;
+    childFirst = end;
+    childLast = end;
+    nextObject = null;
+    previousObject = null;
 
     previousObject = this.last;
     nextObject = previousObject._iNext;
@@ -393,8 +402,7 @@ PIXI.DisplayObject.prototype.addFilter = function(mask)
     }
 
     mask.renderable = false;
-
-}
+};
 
 /*
  * Removes the filter to this displayObject
@@ -402,28 +410,30 @@ PIXI.DisplayObject.prototype.addFilter = function(mask)
  * @method removeFilter
  * @private
  */
-PIXI.DisplayObject.prototype.removeFilter = function()
+proto.removeFilter = function removeFilter()
 {
     if(!this.filter)return;
     this.filter = false;
 
     // modify the list..
-    var startBlock = this.first,
-        lastBlock = this.last,
-        nextObject = startBlock._iNext,
-        previousObject = startBlock._iPrev;
+    var startBlock = this.first;
 
-    if (nextObject) nextObject._iPrev = previousObject;
-    if (previousObject) previousObject._iNext = nextObject;
+    var nextObject = startBlock._iNext;
+    var previousObject = startBlock._iPrev;
+
+    if(nextObject)nextObject._iPrev = previousObject;
+    if(previousObject)previousObject._iNext = nextObject;
 
     this.first = startBlock._iNext;
 
 
     // remove the end filter
+    var lastBlock = this.last;
+
     nextObject = lastBlock._iNext;
     previousObject = lastBlock._iPrev;
 
-    if (nextObject) nextObject._iPrev = previousObject;
+    if(nextObject)nextObject._iPrev = previousObject;
     previousObject._iNext = nextObject;
 
     // this is always true too!
@@ -445,7 +455,7 @@ PIXI.DisplayObject.prototype.removeFilter = function()
     {
         this.__renderGroup.removeFilterBlocks(startBlock, lastBlock);
     }
-}
+};
 
 /*
  * Updates the object transform for rendering
@@ -453,7 +463,7 @@ PIXI.DisplayObject.prototype.removeFilter = function()
  * @method updateTransform
  * @private
  */
-PIXI.DisplayObject.prototype.updateTransform = function()
+proto.updateTransform = function updateTransform()
 {
     // TODO OPTIMIZE THIS!! with dirty
     if(this.rotation !== this.rotationCache)
@@ -499,8 +509,7 @@ PIXI.DisplayObject.prototype.updateTransform = function()
     // mat3.multiply(this.localTransform, this.parent.worldTransform, this.worldTransform);
     this.worldAlpha = this.alpha * this.parent.worldAlpha;
 
-    this.vcount = PIXI.visibleCount;
+    this.vcount = globals.visibleCount;
+};
 
-}
-
-PIXI.visibleCount = 0;
+module.exports = DisplayObject;

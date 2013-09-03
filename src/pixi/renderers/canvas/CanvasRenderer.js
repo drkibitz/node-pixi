@@ -1,7 +1,20 @@
 /**
  * @author Mat Groves http://matgroves.com/ @Doormat23
  */
+'use strict';
 
+var globals = require('../../core/globals');
+
+var canvasGraphics = require('./graphics');
+var Texture = require('../../textures/Texture');
+var DisplayObject = require('../../display/DisplayObject');
+
+var Sprite = require('../../display/Sprite');
+var TilingSprite = require('../../extras/TilingSprite');
+var Strip = require('../../extras/Strip');
+var CustomRenderable = require('../../extras/CustomRenderable');
+var Graphics = require('../../primitives/Graphics');
+var FilterBlock = require('../../filters/FilterBlock');
 
 /**
  * the CanvasRenderer draws the stage and all its content onto a 2d canvas. This renderer should be used for browsers that do not support webGL.
@@ -14,7 +27,7 @@
  * @param view {Canvas} the canvas to use as a view, optional
  * @param transparent=false {Boolean} the transparency of the render view, default false
  */
-PIXI.CanvasRenderer = function(width, height, view, transparent)
+function CanvasRenderer(width, height, view, transparent)
 {
     this.transparent = transparent;
 
@@ -60,8 +73,7 @@ PIXI.CanvasRenderer = function(width, height, view, transparent)
     this.count = 0;
 }
 
-// constructor
-PIXI.CanvasRenderer.prototype.constructor = PIXI.CanvasRenderer;
+var proto = CanvasRenderer.constructor;
 
 /**
  * Renders the stage to its canvas view
@@ -69,17 +81,17 @@ PIXI.CanvasRenderer.prototype.constructor = PIXI.CanvasRenderer;
  * @method render
  * @param stage {Stage} the Stage element to be rendered
  */
-PIXI.CanvasRenderer.prototype.render = function(stage)
+proto.render = function render(stage)
 {
 
     //stage.__childrenAdded = [];
     //stage.__childrenRemoved = [];
 
     // update textures if need be
-    PIXI.texturesToUpdate = [];
-    PIXI.texturesToDestroy = [];
+    globals.texturesToUpdate = [];
+    globals.texturesToDestroy = [];
 
-    PIXI.visibleCount++;
+    globals.visibleCount++;
     stage.updateTransform();
 
     // update the background color
@@ -102,13 +114,11 @@ PIXI.CanvasRenderer.prototype.render = function(stage)
     }
 
     // remove frame updates..
-    if(PIXI.Texture.frameUpdates.length > 0)
+    if (Texture.frameUpdates.length > 0)
     {
-        PIXI.Texture.frameUpdates = [];
+        Texture.frameUpdates = [];
     }
-
-
-}
+};
 
 /**
  * resizes the canvas view to the specified width and height
@@ -117,14 +127,14 @@ PIXI.CanvasRenderer.prototype.render = function(stage)
  * @param width {Number} the new width of the canvas view
  * @param height {Number} the new height of the canvas view
  */
-PIXI.CanvasRenderer.prototype.resize = function(width, height)
+proto.resize = function resize(width, height)
 {
     this.width = width;
     this.height = height;
 
     this.view.width = width;
     this.view.height = height;
-}
+};
 
 /**
  * Renders a display object
@@ -133,7 +143,7 @@ PIXI.CanvasRenderer.prototype.resize = function(width, height)
  * @param displayObject {DisplayObject} The displayObject to render
  * @private
  */
-PIXI.CanvasRenderer.prototype.renderDisplayObject = function(displayObject)
+proto.renderDisplayObject = function renderDisplayObject(displayObject)
 {
     // no loger recurrsive!
     var transform;
@@ -161,7 +171,7 @@ PIXI.CanvasRenderer.prototype.renderDisplayObject = function(displayObject)
             continue;
         }
 
-        if(displayObject instanceof PIXI.Sprite)
+        if(displayObject instanceof Sprite)
         {
 
             var frame = displayObject.texture.frame;
@@ -183,26 +193,26 @@ PIXI.CanvasRenderer.prototype.renderDisplayObject = function(displayObject)
                                    frame.height);
             }
         }
-        else if(displayObject instanceof PIXI.Strip)
+        else if(displayObject instanceof Strip)
         {
             context.setTransform(transform[0], transform[3], transform[1], transform[4], transform[2], transform[5])
             this.renderStrip(displayObject);
         }
-        else if(displayObject instanceof PIXI.TilingSprite)
+        else if(displayObject instanceof TilingSprite)
         {
             context.setTransform(transform[0], transform[3], transform[1], transform[4], transform[2], transform[5])
             this.renderTilingSprite(displayObject);
         }
-        else if(displayObject instanceof PIXI.CustomRenderable)
+        else if(displayObject instanceof CustomRenderable)
         {
             displayObject.renderCanvas(this);
         }
-        else if(displayObject instanceof PIXI.Graphics)
+        else if(displayObject instanceof Graphics)
         {
             context.setTransform(transform[0], transform[3], transform[1], transform[4], transform[2], transform[5])
-            PIXI.CanvasGraphics.renderGraphics(displayObject, context);
+            canvasGraphics.renderGraphics(displayObject, context);
         }
-        else if(displayObject instanceof PIXI.FilterBlock)
+        else if(displayObject instanceof FilterBlock)
         {
             if(displayObject.open)
             {
@@ -217,7 +227,7 @@ PIXI.CanvasRenderer.prototype.renderDisplayObject = function(displayObject)
 
                 context.worldAlpha = 0;
 
-                PIXI.CanvasGraphics.renderGraphicsMask(displayObject.mask, context);
+                canvasGraphics.renderGraphicsMask(displayObject.mask, context);
                 context.clip();
 
                 displayObject.mask.worldAlpha = cacheAlpha;
@@ -233,9 +243,7 @@ PIXI.CanvasRenderer.prototype.renderDisplayObject = function(displayObject)
 
     }
     while(displayObject != testObject)
-
-
-}
+};
 
 /**
  * Renders a flat strip
@@ -244,7 +252,7 @@ PIXI.CanvasRenderer.prototype.renderDisplayObject = function(displayObject)
  * @param strip {Strip} The Strip to render
  * @private
  */
-PIXI.CanvasRenderer.prototype.renderStripFlat = function(strip)
+proto.renderStripFlat = function renderStripFlat(strip)
 {
     var context = this.context;
     var verticies = strip.verticies;
@@ -272,7 +280,7 @@ PIXI.CanvasRenderer.prototype.renderStripFlat = function(strip)
     context.fillStyle = "#FF0000";
     context.fill();
     context.closePath();
-}
+};
 
 /**
  * Renders a tiling sprite
@@ -281,7 +289,7 @@ PIXI.CanvasRenderer.prototype.renderStripFlat = function(strip)
  * @param sprite {TilingSprite} The tilingsprite to render
  * @private
  */
-PIXI.CanvasRenderer.prototype.renderTilingSprite = function(sprite)
+proto.renderTilingSprite = function renderTilingSprite(sprite)
 {
     var context = this.context;
 
@@ -305,7 +313,7 @@ PIXI.CanvasRenderer.prototype.renderTilingSprite = function(sprite)
     context.translate(-tilePosition.x, -tilePosition.y);
 
     context.closePath();
-}
+};
 
 /**
  * Renders a strip
@@ -314,7 +322,7 @@ PIXI.CanvasRenderer.prototype.renderTilingSprite = function(sprite)
  * @param strip {Strip} The Strip to render
  * @private
  */
-PIXI.CanvasRenderer.prototype.renderStrip = function(strip)
+proto.renderStrip = function renderStrip(strip)
 {
     var context = this.context;
 
@@ -366,5 +374,6 @@ PIXI.CanvasRenderer.prototype.renderStrip = function(strip)
         context.drawImage(strip.texture.baseTexture.source, 0, 0);
         context.restore();
     }
+};
 
-}
+module.exports = CanvasRenderer;

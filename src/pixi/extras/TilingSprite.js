@@ -1,6 +1,11 @@
 /**
  * @author Mat Groves http://matgroves.com/
  */
+'use strict';
+
+var blendModes = require('../display/blendModes');
+var DisplayObjectContainer = require('../display/DisplayObjectContainer');
+var Point = require('../geom/Point');
 
 /**
  * A tiling sprite is a fast way of rendering a tiling image
@@ -12,9 +17,9 @@
  * @param width {Number}  the width of the tiling sprite
  * @param height {Number} the height of the tiling sprite
  */
-PIXI.TilingSprite = function(texture, width, height)
+function TilingSprite(texture, width, height)
 {
-    PIXI.DisplayObjectContainer.call( this );
+    DisplayObjectContainer.call( this );
 
     /**
      * The texture that the sprite is using
@@ -46,7 +51,7 @@ PIXI.TilingSprite = function(texture, width, height)
      * @property tileScale
      * @type Point
      */
-    this.tileScale = new PIXI.Point(1,1);
+    this.tileScale = new Point(1,1);
 
     /**
      * The offset position of the image that is being tiled
@@ -54,24 +59,24 @@ PIXI.TilingSprite = function(texture, width, height)
      * @property tilePosition
      * @type Point
      */
-    this.tilePosition = new PIXI.Point(0,0);
+    this.tilePosition = new Point(0,0);
 
     this.renderable = true;
 
-    this.blendMode = PIXI.blendModes.NORMAL
+    this.blendMode = blendModes.NORMAL;
 }
 
-// constructor
-PIXI.TilingSprite.prototype = Object.create( PIXI.DisplayObjectContainer.prototype );
-PIXI.TilingSprite.prototype.constructor = PIXI.TilingSprite;
+var proto = TilingSprite.prototype = Object.create(DisplayObjectContainer.prototype, {
+    constructor: {value: TilingSprite}
+});
 
 /**
  * Sets the texture of the tiling sprite
  *
  * @method setTexture
- * @param texture {Texture} The PIXI texture that is displayed by the sprite
+ * @param texture {Texture} The texture that is displayed by the sprite
  */
-PIXI.TilingSprite.prototype.setTexture = function(texture)
+proto.setTexture = function setTexture(texture)
 {
     //TODO SET THE TEXTURES
     //TODO VISIBILITY
@@ -79,7 +84,7 @@ PIXI.TilingSprite.prototype.setTexture = function(texture)
     // stop current texture
     this.texture = texture;
     this.updateFrame = true;
-}
+};
 
 /**
  * When the texture is updated, this event will fire to update the frame
@@ -88,8 +93,9 @@ PIXI.TilingSprite.prototype.setTexture = function(texture)
  * @param event
  * @private
  */
-PIXI.TilingSprite.prototype.onTextureUpdate = function(event)
+proto.onTextureUpdate = function onTextureUpdate(event)
 {
     this.updateFrame = true;
-}
+};
 
+module.exports = TilingSprite;

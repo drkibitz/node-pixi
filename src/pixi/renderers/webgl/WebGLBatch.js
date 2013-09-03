@@ -1,36 +1,10 @@
 /**
  * @author Mat Groves http://matgroves.com/ @Doormat23
  */
+'use strict';
 
-PIXI._batchs = [];
-
-/**
- * @private
- */
-PIXI._getBatch = function(gl)
-{
-    return PIXI._batchs.length ? new PIXI.WebGLBatch(gl) : PIXI._batchs.pop();
-}
-
-/**
- * @private
- */
-PIXI._returnBatch = function(batch)
-{
-    batch.clean();
-    PIXI._batchs.push(batch);
-}
-
-/**
- * @private
- */
-PIXI._restoreBatchs = function(gl)
-{
-    for (var i = 0, l = PIXI._batchs.length; i < l; i++)
-    {
-        PIXI._batchs[i].restoreLostContext(gl);
-    }
-}
+var globals = require('../../core/globals');
+var blendModes = require('../../display/blendModes');
 
 /**
  * A WebGLBatch Enables a group of sprites to be drawn using the same settings.
@@ -44,7 +18,7 @@ PIXI._restoreBatchs = function(gl)
  * @constructor
  * @param gl {WebGLContext} an instance of the webGL context
  */
-PIXI.WebGLBatch = function(gl)
+function WebGLBatch(gl)
 {
     this.gl = gl;
 
@@ -54,19 +28,18 @@ PIXI.WebGLBatch = function(gl)
     this.indexBuffer =  gl.createBuffer();
     this.uvBuffer =  gl.createBuffer();
     this.colorBuffer =  gl.createBuffer();
-    this.blendMode = PIXI.blendModes.NORMAL;
+    this.blendMode = blendModes.NORMAL;
     this.dynamicSize = 1;
 }
 
-// constructor
-PIXI.WebGLBatch.prototype.constructor = PIXI.WebGLBatch;
+var proto = WebGLBatch.prototype;
 
 /**
  * Cleans the batch so that is can be returned to an object pool and reused
  *
  * @method clean
  */
-PIXI.WebGLBatch.prototype.clean = function()
+proto.clean = function clean()
 {
     this.verticies = [];
     this.uvs = [];
@@ -77,7 +50,7 @@ PIXI.WebGLBatch.prototype.clean = function()
     this.size = 0;
     this.head = null;
     this.tail = null;
-}
+};
 
 /**
  * Recreates the buffers in the event of a context loss
@@ -85,14 +58,14 @@ PIXI.WebGLBatch.prototype.clean = function()
  * @method restoreLostContext
  * @param gl {WebGLContext}
  */
-PIXI.WebGLBatch.prototype.restoreLostContext = function(gl)
+proto.restoreLostContext = function restoreLostContext(gl)
 {
     this.gl = gl;
     this.vertexBuffer =  gl.createBuffer();
     this.indexBuffer =  gl.createBuffer();
     this.uvBuffer =  gl.createBuffer();
     this.colorBuffer =  gl.createBuffer();
-}
+};
 
 /**
  * inits the batch's texture and blend mode based if the supplied sprite
@@ -101,7 +74,7 @@ PIXI.WebGLBatch.prototype.restoreLostContext = function(gl)
  * @param sprite {Sprite} the first sprite to be added to the batch. Only sprites with
  *      the same base texture and blend mode will be allowed to be added to this batch
  */
-PIXI.WebGLBatch.prototype.init = function(sprite)
+proto.init = function init(sprite)
 {
     sprite.batch = this;
     this.dirty = true;
@@ -112,7 +85,7 @@ PIXI.WebGLBatch.prototype.init = function(sprite)
     this.size = 1;
 
     this.growBatch();
-}
+};
 
 /**
  * inserts a sprite before the specified sprite
@@ -121,7 +94,7 @@ PIXI.WebGLBatch.prototype.init = function(sprite)
  * @param sprite {Sprite} the sprite to be added
  * @param nextSprite {nextSprite} the first sprite will be inserted before this sprite
  */
-PIXI.WebGLBatch.prototype.insertBefore = function(sprite, nextSprite)
+proto.insertBefore = function insertBefore(sprite, nextSprite)
 {
     this.size++;
 
@@ -140,7 +113,7 @@ PIXI.WebGLBatch.prototype.insertBefore = function(sprite, nextSprite)
     {
         this.head = sprite;
     }
-}
+};
 
 /**
  * inserts a sprite after the specified sprite
@@ -149,7 +122,7 @@ PIXI.WebGLBatch.prototype.insertBefore = function(sprite, nextSprite)
  * @param sprite {Sprite} the sprite to be added
  * @param  previousSprite {Sprite} the first sprite will be inserted after this sprite
  */
-PIXI.WebGLBatch.prototype.insertAfter = function(sprite, previousSprite)
+proto.insertAfter = function insertAfter(sprite, previousSprite)
 {
     this.size++;
 
@@ -169,7 +142,7 @@ PIXI.WebGLBatch.prototype.insertAfter = function(sprite, previousSprite)
     {
         this.tail = sprite
     }
-}
+};
 
 /**
  * removes a sprite from the batch
@@ -177,7 +150,7 @@ PIXI.WebGLBatch.prototype.insertAfter = function(sprite, previousSprite)
  * @method remove
  * @param sprite {Sprite} the sprite to be removed
  */
-PIXI.WebGLBatch.prototype.remove = function(sprite)
+proto.remove = function remove(sprite)
 {
     this.size--;
 
@@ -213,7 +186,7 @@ PIXI.WebGLBatch.prototype.remove = function(sprite)
     sprite.__next = null;
     sprite.__prev = null;
     this.dirty = true;
-}
+};
 
 /**
  * Splits the batch into two with the specified sprite being the start of the new batch.
@@ -222,11 +195,11 @@ PIXI.WebGLBatch.prototype.remove = function(sprite)
  * @param sprite {Sprite} the sprite that indicates where the batch should be split
  * @return {WebGLBatch} the new batch
  */
-PIXI.WebGLBatch.prototype.split = function(sprite)
+proto.split = function split(sprite)
 {
     this.dirty = true;
 
-    var batch = new PIXI.WebGLBatch(this.gl);
+    var batch = new WebGLBatch(this.gl);
     batch.init(sprite);
     batch.texture = this.texture;
     batch.tail = this.tail;
@@ -254,7 +227,7 @@ PIXI.WebGLBatch.prototype.split = function(sprite)
     this.size -= tempSize;
 
     return batch;
-}
+};
 
 /**
  * Merges two batchs together
@@ -262,7 +235,7 @@ PIXI.WebGLBatch.prototype.split = function(sprite)
  * @method merge
  * @param batch {WebGLBatch} the batch that will be merged
  */
-PIXI.WebGLBatch.prototype.merge = function(batch)
+proto.merge = function merge(batch)
 {
     this.dirty = true;
 
@@ -279,7 +252,7 @@ PIXI.WebGLBatch.prototype.merge = function(batch)
         sprite.batch = this;
         sprite = sprite.__next;
     }
-}
+};
 
 /**
  * Grows the size of the batch. As the elements in the batch cannot have a dynamic size this
@@ -288,7 +261,7 @@ PIXI.WebGLBatch.prototype.merge = function(batch)
  *
  * @method growBatch
  */
-PIXI.WebGLBatch.prototype.growBatch = function()
+proto.growBatch = function growBatch()
 {
     var gl = this.gl;
     if( this.size == 1)
@@ -333,14 +306,14 @@ PIXI.WebGLBatch.prototype.growBatch = function()
 
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer);
     gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, this.indices, gl.STATIC_DRAW);
-}
+};
 
 /**
  * Refresh's all the data in the batch and sync's it with the webGL buffers
  *
  * @method refresh
  */
-PIXI.WebGLBatch.prototype.refresh = function()
+proto.refresh = function refresh()
 {
     var gl = this.gl;
 
@@ -351,7 +324,7 @@ PIXI.WebGLBatch.prototype.refresh = function()
 
     var indexRun = 0;
     var worldTransform, width, height, aX, aY, w0, w1, h0, h1, index;
-    var a, b, c, d, tx, ty;
+    var a, b, c, d, tx, ty, colorIndex;
 
     var displayObject = this.head;
 
@@ -389,14 +362,14 @@ PIXI.WebGLBatch.prototype.refresh = function()
 
     this.dirtyUVS = true;
     this.dirtyColors = true;
-}
+};
 
 /**
  * Updates all the relevant geometry and uploads the data to the GPU
  *
  * @method update
  */
-PIXI.WebGLBatch.prototype.update = function()
+proto.update = function update()
 {
     var gl = this.gl;
     var worldTransform, width, height, aX, aY, w0, w1, h0, h1, index, index2, index3
@@ -409,7 +382,7 @@ PIXI.WebGLBatch.prototype.update = function()
 
     while(displayObject)
     {
-        if(displayObject.vcount === PIXI.visibleCount)
+        if(displayObject.vcount === globals.visibleCount)
         {
             width = displayObject.texture.frame.width;
             height = displayObject.texture.frame.height;
@@ -501,14 +474,14 @@ PIXI.WebGLBatch.prototype.update = function()
         indexRun++;
         displayObject = displayObject.__next;
    }
-}
+};
 
 /**
  * Draws the batch to the frame buffer
  *
  * @method render
  */
-PIXI.WebGLBatch.prototype.render = function(start, end)
+proto.render = function render(start, end)
 {
     start = start || 0;
 
@@ -527,7 +500,7 @@ PIXI.WebGLBatch.prototype.render = function(start, end)
 
     //TODO optimize this!
 
-    var shaderProgram = PIXI.shaderProgram;
+    var shaderProgram = globals.shaderProgram;
     gl.useProgram(shaderProgram);
 
     // update the verts..
@@ -567,4 +540,57 @@ PIXI.WebGLBatch.prototype.render = function(start, end)
 
     // DRAW THAT this!
     gl.drawElements(gl.TRIANGLES, len * 6, gl.UNSIGNED_SHORT, start * 2 * 6 );
-}
+};
+
+/**
+ * Internal WebGLBatch pool
+ *
+ * @private
+ */
+var batches = [];
+
+/**
+ * Call when restoring a lost context
+ *
+ * @static
+ * @method restoreBatches
+ * @return void
+ */
+WebGLBatch.restoreBatches = function restoreBatches(gl)
+{
+    for (var i = 0, l = batches.length; i < l; i++)
+    {
+        batches[i].restoreLostContext(gl);
+    }
+};
+
+/**
+ * Gets a new WebGLBatch from the pool
+ *
+ * @static
+ * @method getBatch
+ * @return {WebGLBatch}
+ */
+WebGLBatch.getBatch = function getBatch()
+{
+    if (!batches.length) {
+        return new WebGLBatch(globals.gl);
+    } else {
+        return batches.pop();
+    }
+};
+
+/**
+ * Puts a batch back into the pool
+ *
+ * @static
+ * @method returnBatch
+ * @param batch {WebGLBatch} The batch to return
+ */
+WebGLBatch.returnBatch = function returnBatch(batch)
+{
+    batch.clean();
+    batches.push(batch);
+};
+
+module.exports = WebGLBatch;

@@ -1,6 +1,11 @@
 /**
  * @author Mat Groves http://matgroves.com/ @Doormat23
  */
+'use strict';
+
+var DisplayObjectContainer = require('../display/DisplayObjectContainer');
+var Sprite = require('../display/Sprite');
+var Point = require('../geom/Point');
 
 /**
  * A Text Object will create a line(s) of text using bitmap font. To split a line you can use "\n", "\r" or "\r\n"
@@ -16,20 +21,19 @@
  * @param style.font {String} The size (optional) and bitmap font id (required) eq "Arial" or "20px Arial" (must have loaded previously)
  * @param [style.align="left"] {String} An alignment of the multiline text ("left", "center" or "right")
  */
-PIXI.BitmapText = function(text, style)
+function BitmapText(text, style)
 {
-    PIXI.DisplayObjectContainer.call(this);
+    DisplayObjectContainer.call(this);
 
     this.setText(text);
     this.setStyle(style);
     this.updateText();
     this.dirty = false
+}
 
-};
-
-// constructor
-PIXI.BitmapText.prototype = Object.create(PIXI.DisplayObjectContainer.prototype);
-PIXI.BitmapText.prototype.constructor = PIXI.BitmapText;
+var proto = BitmapText.prototype = Object.create(DisplayObjectContainer.prototype, {
+    constructor: {value: BitmapText}
+});
 
 /**
  * Set the copy for the text object
@@ -37,7 +41,7 @@ PIXI.BitmapText.prototype.constructor = PIXI.BitmapText;
  * @method setText
  * @param text {String} The copy that you would like the text to display
  */
-PIXI.BitmapText.prototype.setText = function(text)
+proto.setText = function setText(text)
 {
     this.text = text || " ";
     this.dirty = true;
@@ -51,7 +55,7 @@ PIXI.BitmapText.prototype.setText = function(text)
  * @param style.font {String} The size (optional) and bitmap font id (required) eq "Arial" or "20px Arial" (must have loaded previously)
  * @param [style.align="left"] {String} An alignment of the multiline text ("left", "center" or "right")
  */
-PIXI.BitmapText.prototype.setStyle = function(style)
+proto.setStyle = function setStyle(style)
 {
     style = style || {};
     style.align = style.align || "left";
@@ -59,7 +63,7 @@ PIXI.BitmapText.prototype.setStyle = function(style)
 
     var font = style.font.split(" ");
     this.fontName = font[font.length - 1];
-    this.fontSize = font.length >= 2 ? parseInt(font[font.length - 2], 10) : PIXI.BitmapText.fonts[this.fontName].size;
+    this.fontSize = font.length >= 2 ? parseInt(font[font.length - 2], 10) : BitmapText.fonts[this.fontName].size;
 
     this.dirty = true;
 };
@@ -70,10 +74,10 @@ PIXI.BitmapText.prototype.setStyle = function(style)
  * @method updateText
  * @private
  */
-PIXI.BitmapText.prototype.updateText = function()
+proto.updateText = function updateText()
 {
-    var data = PIXI.BitmapText.fonts[this.fontName];
-    var pos = new PIXI.Point();
+    var data = BitmapText.fonts[this.fontName];
+    var pos = new Point();
     var prevCharCode = null;
     var chars = [];
     var maxLineWidth = 0;
@@ -102,7 +106,7 @@ PIXI.BitmapText.prototype.updateText = function()
         {
            pos.x += charData.kerning[prevCharCode];
         }
-        chars.push({texture:charData.texture, line: line, charCode: charCode, position: new PIXI.Point(pos.x + charData.xOffset, pos.y + charData.yOffset)});
+        chars.push({texture:charData.texture, line: line, charCode: charCode, position: new Point(pos.x + charData.xOffset, pos.y + charData.yOffset)});
         pos.x += charData.xAdvance;
 
         prevCharCode = charCode;
@@ -128,7 +132,7 @@ PIXI.BitmapText.prototype.updateText = function()
 
     for(i = 0; i < chars.length; i++)
     {
-        var c = new PIXI.Sprite(chars[i].texture)//PIXI.Sprite.fromFrame(chars[i].charCode);
+        var c = new Sprite(chars[i].texture); //Sprite.fromFrame(chars[i].charCode);
         c.position.x = (chars[i].position.x + lineAlignOffsets[chars[i].line]) * scale;
         c.position.y = chars[i].position.y * scale;
         c.scale.x = c.scale.y = scale;
@@ -145,7 +149,7 @@ PIXI.BitmapText.prototype.updateText = function()
  * @method updateTransform
  * @private
  */
-PIXI.BitmapText.prototype.updateTransform = function()
+proto.updateTransform = function updateTransform()
 {
     if(this.dirty)
     {
@@ -158,7 +162,9 @@ PIXI.BitmapText.prototype.updateTransform = function()
         this.dirty = false;
     }
 
-    PIXI.DisplayObjectContainer.prototype.updateTransform.call(this);
+    DisplayObjectContainer.prototype.updateTransform.call(this);
 };
 
-PIXI.BitmapText.fonts = {};
+BitmapText.fonts = {};
+
+module.exports = BitmapText;
