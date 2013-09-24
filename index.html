@@ -1,0 +1,212 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="chrome=1">
+    <title>node-pixi by drkibitz</title>
+
+    <link rel="stylesheet" href="stylesheets/styles.css">
+    <link rel="stylesheet" href="stylesheets/pygment_trac.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+    <!--[if lt IE 9]>
+    <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+  </head>
+  <body>
+    <div class="wrapper">
+      <header>
+        <h1>node-pixi</h1>
+        <p>Super fast 2D rendering engine for browserify, that uses WebGL with a context 2d fallback.</p>
+
+        <p class="view"><a href="https://github.com/drkibitz/node-pixi">View the Project on GitHub <small>drkibitz/node-pixi</small></a></p>
+
+
+        <ul>
+          <li><a href="https://github.com/drkibitz/node-pixi/zipball/master">Download <strong>ZIP File</strong></a></li>
+          <li><a href="https://github.com/drkibitz/node-pixi/tarball/master">Download <strong>TAR Ball</strong></a></li>
+          <li><a href="https://github.com/drkibitz/node-pixi">View On <strong>GitHub</strong></a></li>
+        </ul>
+      </header>
+      <section>
+        <p><a href="http://travis-ci.org/drkibitz/node-pixi"><img src="https://secure.travis-ci.org/drkibitz/node-pixi.png" alt="Build Status"></a>
+<a href="http://badge.fury.io/js/pixi"><img src="https://badge.fury.io/js/pixi.png" alt="NPM version"></a></p>
+
+<h1>
+<a name="node-pixi-renderer" class="anchor" href="#node-pixi-renderer"><span class="octicon octicon-link"></span></a>Node Pixi Renderer</h1>
+
+<p>This is a fork of <a href="https://github.com/GoodBoyDigital/pixi.js">Pixi.JS</a> mainly for use with <a href="http://browserify.org/">browserify</a>, but has also went in a slightly different direction in terms of programming style.</p>
+
+<p><em>Basically, I am open to MAJOR refactors if they are appropriate, and it might even be completely rewritten in TypeScript in the future (not there yet). Also in the future the goals may differ from Pixi.JS. I may streamline things and standardize only on WebGL, and sooner rather than later (Saying goodbye to the 2d context).</em></p>
+
+<h3>
+<a name="pixijs-javascript-2d-renderer" class="anchor" href="#pixijs-javascript-2d-renderer"><span class="octicon octicon-link"></span></a>Pixi.JS JavaScript 2D Renderer</h3>
+
+<p>The aim of this project is to provide a fast lightweight 2D library that works across all devices. The Pixi renderer allows everyone to enjoy the power of hardware acceleration without prior knowledge of <a href="http://en.wikipedia.org/wiki/WebGL">WebGL</a>. Also its fast.</p>
+
+<ul>
+<li><a href="https://github.com/GoodBoyDigital/pixi.js/blob/master/README.md">Pixi.JS README</a></li>
+<li><a href="http://www.goodboydigital.com/pixijs/docs/">Pixi.JS Documentation</a></li>
+<li><a href="http://www.html5gamedevs.com/forum/15-pixijs/">Pixi.JS forum</a></li>
+<li><a href="https://github.com/GoodBoyDigital/pixi.js/wiki/Resources">Pixi.JS Tutorials and other helpful bits</a></li>
+</ul><p>This content is released under the (<a href="http://opensource.org/licenses/MIT">http://opensource.org/licenses/MIT</a>) MIT License.</p>
+
+<h2>
+<a name="examples" class="anchor" href="#examples"><span class="octicon octicon-link"></span></a>Examples</h2>
+
+<ul>
+<li><a href="http://drkibitz.github.io/node-pixi/example/1-basics/">Basics</a></li>
+<li><a href="http://drkibitz.github.io/node-pixi/example/2-sprite-sheet/">SpriteSheet</a></li>
+<li><a href="http://drkibitz.github.io/node-pixi/example/3-movie-clip/">MovieClip</a></li>
+<li><a href="http://drkibitz.github.io/node-pixi/example/4-balls/">Balls</a></li>
+<li><a href="http://drkibitz.github.io/node-pixi/example/5-morph/">Morph</a></li>
+<li><a href="http://drkibitz.github.io/node-pixi/example/6-interactivity/">Interactivity</a></li>
+<li><a href="http://drkibitz.github.io/node-pixi/example/7-transparent-background/">Transparent Background</a></li>
+<li><a href="http://drkibitz.github.io/node-pixi/example/8-dragging/">Dragging</a></li>
+<li><a href="http://drkibitz.github.io/node-pixi/example/9-tiling-texture/">Tiling Texture</a></li>
+<li><a href="http://drkibitz.github.io/node-pixi/example/10-text/">Text</a></li>
+<li><a href="http://drkibitz.github.io/node-pixi/example/11-render-texture/">RenderTexture</a></li>
+<li><a href="http://drkibitz.github.io/node-pixi/example/12-spine/">Spine</a></li>
+<li><a href="http://drkibitz.github.io/node-pixi/example/13-graphics/">Graphics</a></li>
+<li><a href="http://drkibitz.github.io/node-pixi/example/14-masking/">Masking</a></li>
+</ul><h2>
+<a name="install" class="anchor" href="#install"><span class="octicon octicon-link"></span></a>Install</h2>
+
+<p>node-pixi can be installed with <a href="http://nodejs.org/">Node</a> and <a href="https://npmjs.org/">NPM</a>.</p>
+
+<pre lang="shell"><code>npm install pixi
+</code></pre>
+
+<h2>
+<a name="usage" class="anchor" href="#usage"><span class="octicon octicon-link"></span></a>Usage</h2>
+
+<h3>
+<a name="basic" class="anchor" href="#basic"><span class="octicon octicon-link"></span></a>Basic</h3>
+
+<p>Once installed as a <code>node_module</code>, it can now be used with browserify as follows:</p>
+
+<p>Example main.js:</p>
+
+<div class="highlight highlight-javascript"><pre><span class="c1">// Require pixi module</span>
+<span class="kd">var</span> <span class="nx">pixi</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">'pixi'</span><span class="p">);</span>
+
+<span class="c1">// You can use either WebGLRenderer or CanvasRenderer</span>
+<span class="kd">var</span> <span class="nx">renderer</span> <span class="o">=</span> <span class="nx">pixi</span><span class="p">.</span><span class="nx">WebGLRenderer</span><span class="p">(</span><span class="mi">800</span><span class="p">,</span> <span class="mi">600</span><span class="p">);</span>
+<span class="nb">document</span><span class="p">.</span><span class="nx">body</span><span class="p">.</span><span class="nx">appendChild</span><span class="p">(</span><span class="nx">renderer</span><span class="p">.</span><span class="nx">view</span><span class="p">);</span>
+
+<span class="kd">var</span> <span class="nx">stage</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">pixi</span><span class="p">.</span><span class="nx">Stage</span><span class="p">();</span>
+<span class="kd">var</span> <span class="nx">bunnyTexture</span> <span class="o">=</span> <span class="nx">pixi</span><span class="p">.</span><span class="nx">Texture</span><span class="p">.</span><span class="nx">fromImage</span><span class="p">(</span><span class="s2">"bunny.png"</span><span class="p">);</span>
+<span class="kd">var</span> <span class="nx">bunny</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">pixi</span><span class="p">.</span><span class="nx">Sprite</span><span class="p">(</span><span class="nx">bunnyTexture</span><span class="p">);</span>
+
+<span class="nx">bunny</span><span class="p">.</span><span class="nx">position</span><span class="p">.</span><span class="nx">x</span> <span class="o">=</span> <span class="mi">400</span><span class="p">;</span>
+<span class="nx">bunny</span><span class="p">.</span><span class="nx">position</span><span class="p">.</span><span class="nx">y</span> <span class="o">=</span> <span class="mi">300</span><span class="p">;</span>
+<span class="nx">bunny</span><span class="p">.</span><span class="nx">scale</span><span class="p">.</span><span class="nx">x</span> <span class="o">=</span> <span class="mi">2</span><span class="p">;</span>
+<span class="nx">bunny</span><span class="p">.</span><span class="nx">scale</span><span class="p">.</span><span class="nx">y</span> <span class="o">=</span> <span class="mi">2</span><span class="p">;</span>
+
+<span class="nx">stage</span><span class="p">.</span><span class="nx">addChild</span><span class="p">(</span><span class="nx">bunny</span><span class="p">);</span>
+
+<span class="nx">requestAnimationFrame</span><span class="p">(</span><span class="nx">animate</span><span class="p">);</span>
+
+<span class="kd">function</span> <span class="nx">animate</span><span class="p">()</span> <span class="p">{</span>
+    <span class="nx">bunny</span><span class="p">.</span><span class="nx">rotation</span> <span class="o">+=</span> <span class="mf">0.01</span><span class="p">;</span>
+
+    <span class="nx">renderer</span><span class="p">.</span><span class="nx">render</span><span class="p">(</span><span class="nx">stage</span><span class="p">);</span>
+
+    <span class="nx">requestAnimationFrame</span><span class="p">(</span><span class="nx">animate</span><span class="p">);</span>
+<span class="p">}</span>
+</pre></div>
+
+<h3>
+<a name="alternative" class="anchor" href="#alternative"><span class="octicon octicon-link"></span></a>Alternative</h3>
+
+<p>You can completely bypass requiring the main <code>pixi</code> module, and go directly for the submodules. This is more verbose than it should be right now, but will get better in the future. Doing this makes sure you only require what you need when you need it.</p>
+
+<p>Example main.js:</p>
+
+<div class="highlight highlight-javascript"><pre><span class="c1">// Require modules</span>
+<span class="kd">var</span> <span class="nx">Sprite</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">'pixi/src/pixi/display/Sprite'</span><span class="p">);</span>
+<span class="kd">var</span> <span class="nx">Stage</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">'pixi/src/pixi/display/Stage'</span><span class="p">);</span>
+<span class="kd">var</span> <span class="nx">Texture</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">'pixi/src/pixi/textures/Texture'</span><span class="p">);</span>
+<span class="kd">var</span> <span class="nx">WebGLRenderer</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">'pixi/src/pixi/renderers/webgl/WebGLRenderer'</span><span class="p">);</span>
+
+<span class="kd">var</span> <span class="nx">renderer</span> <span class="o">=</span> <span class="nx">WebGLRenderer</span><span class="p">(</span><span class="mi">800</span><span class="p">,</span> <span class="mi">600</span><span class="p">);</span>
+<span class="nb">document</span><span class="p">.</span><span class="nx">body</span><span class="p">.</span><span class="nx">appendChild</span><span class="p">(</span><span class="nx">renderer</span><span class="p">.</span><span class="nx">view</span><span class="p">);</span>
+
+<span class="kd">var</span> <span class="nx">stage</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Stage</span><span class="p">();</span>
+<span class="c1">// ... etc ...</span>
+</pre></div>
+
+<h2>
+<a name="coming-soon" class="anchor" href="#coming-soon"><span class="octicon octicon-link"></span></a>Coming Soon</h2>
+
+<ul>
+<li><strong>node-pixi goals</strong></li>
+<li><strong>node-pixi roadmap</strong></li>
+<li><strong>node-pixi documentation</strong></li>
+<li><strong>either update wiki, or remove it</strong></li>
+<li><strong>complete unit tests, and working functional tests</strong></li>
+</ul><h2>
+<a name="build-from-source" class="anchor" href="#build-from-source"><span class="octicon octicon-link"></span></a>Build from Source</h2>
+
+<p>node-pixi can be compiled with <a href="http://gruntjs.com/">Grunt</a>. If you don't already have this, go install <a href="http://nodejs.org/">Node</a> and <a href="https://npmjs.org/">NPM</a> then install the <a href="http://gruntjs.com/getting-started">Grunt Command Line</a>.</p>
+
+<pre lang="shell"><code>npm install -g grunt-cli
+</code></pre>
+
+<p>Get the source:</p>
+
+<pre lang="shell"><code>git clone https://github.com/drkibitz/node-pixi.git
+</code></pre>
+
+<p>Then, in the folder where you have downloaded the source, install the devDependencies using npm:</p>
+
+<pre lang="shell"><code>npm install
+</code></pre>
+
+<p>Then build:</p>
+
+<pre><code>grunt
+</code></pre>
+
+<p>This will lint the source, browserify the source to <code>bin/pixi.js</code>, lint the compiled file, run tests, and finally create a minified version at <code>bin/pixi.min.js</code>. It also copies the minified version to the all the example directories.</p>
+
+<p>You may run any dev server to view the examples in the <strong>gh-pages</strong> branch, but one is provided as a task here:</p>
+
+<pre><code>grunt connect
+</code></pre>
+
+<h2>
+<a name="contribute" class="anchor" href="#contribute"><span class="octicon octicon-link"></span></a>Contribute</h2>
+
+<p>Want to contribute to node-pixi? Just make a pull request or a suggestion on <a href="https://github.com/drkibitz/node-pixi/issues">Github</a>. Please make sure you write tests, and run them before committing changes.</p>
+
+<p>If you followed the steps in the <strong>Build from Source</strong> section, then you can run the tests locally:</p>
+
+<pre><code>grunt test
+</code></pre>
+
+<ul>
+<li>The test suite uses the <a href="http://karma-runner.github.io/0.10/index.html">karma-runner</a>
+</li>
+<li>The test suite expects Firefox to be installed (This can be configured in <code>karma.conf.js</code>)</li>
+<li>Tests are run for every <a href="https://travis-ci.org/">Travis CI</a> build</li>
+</ul>
+      </section>
+      <footer>
+        <p>This project is maintained by <a href="https://github.com/drkibitz">drkibitz</a></p>
+        <p><small>Hosted on GitHub Pages &mdash; Theme by <a href="https://github.com/orderedlist">orderedlist</a></small></p>
+      </footer>
+    </div>
+    <script src="javascripts/scale.fix.js"></script>
+              <script type="text/javascript">
+            var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
+            document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));
+          </script>
+          <script type="text/javascript">
+            try {
+              var pageTracker = _gat._getTracker("UA-29551909-1");
+            pageTracker._trackPageview();
+            } catch(err) {}
+          </script>
+
+  </body>
+</html>
