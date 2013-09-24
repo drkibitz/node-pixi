@@ -8,9 +8,23 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks('grunt-browserify');
     grunt.loadTasks('tasks');
 
+    var banner = [
+    '/**',
+    ' * <%= package.name %> <%= package.version %>',
+    ' * <%= package.homepage %>',
+    ' * Copyright (c) 2013 Dr. Kibitz, http://drkibitz.com',
+    ' * <%= package.description %>',
+    ' * built: ' + new Date(),
+    ' *',
+    ' * @license',
+    ' * Pixi.js - v1.3.0',
+    ' * Copyright (c) 2012, Mat Groves',
+    ' */',
+    ''].join("\n");
+
     grunt.initConfig({
         // Configure values
-        pkg : grunt.file.readJSON('package.json'),
+        package : grunt.file.readJSON('package.json'),
         dirs: {
             build    : 'bin',
             docs     : 'docs',
@@ -19,24 +33,8 @@ module.exports = function(grunt) {
             test     : 'test'
         },
         files: {
-            build    : '<%= dirs.build %>/pixi.dev.js',
-            buildMin : '<%= dirs.build %>/pixi.js'
-        },
-        strings: {
-            banner: [
-                '/**',
-                ' * @license',
-                ' * <%= pkg.name %> - v<%= pkg.version %>',
-                ' * Copyright (c) 2012, Mat Groves',
-                ' * <%= pkg.homepage %>',
-                ' *',
-                ' * Compiled: <%= grunt.template.today("yyyy-mm-dd") %>',
-                ' *',
-                ' * <%= pkg.name %> is licensed under the <%= pkg.license %> License.',
-                ' * <%= pkg.licenseUrl %>',
-                ' */',
-                ''
-            ].join('\n')
+            build    : '<%= dirs.build %>/pixi.js',
+            buildMin : '<%= dirs.build %>/pixi.min.js'
         },
 
         // Configure tasks
@@ -72,7 +70,7 @@ module.exports = function(grunt) {
         },
         uglify: {
             options: {
-                banner: '<%= strings.banner %>'
+                banner: banner
             },
             dist: {
                 src: '<%= files.build %>',
@@ -108,11 +106,10 @@ module.exports = function(grunt) {
         },
         yuidoc: {
             compile: {
-                name: '<%= pkg.name %>',
-                description: '<%= pkg.description %>',
-                version: '<%= pkg.version %>',
-                url: '<%= pkg.homepage %>',
-                logo: '<%= pkg.logo %>',
+                name: '<%= package.name %>',
+                description: '<%= package.description %>',
+                version: '<%= package.version %>',
+                url: '<%= package.homepage %>',
                 options: {
                     paths: '<%= dirs.src %>',
                     outdir: '<%= dirs.docs %>'
@@ -127,24 +124,6 @@ module.exports = function(grunt) {
             }
         }
     });
-
-    grunt.registerMultiTask(
-        'distribute',
-        'Copy built file to examples',
-        function(){
-            var pixi = grunt.file.read( grunt.config.get('files.build') );
-
-            var dests = this.data;
-
-            dests.forEach(function(filepath){
-
-                grunt.file.write(filepath + '/pixi.js', pixi);
-
-            });
-
-            grunt.log.writeln('Pixi copied to examples.');
-        }
-    );
 
     grunt.registerTask('lintconcat', ['jshint:beforeconcat', 'browserify:dist', 'jshint:afterconcat']);
     grunt.registerTask('build', ['lintconcat', 'uglify', 'distribute']);

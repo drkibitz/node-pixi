@@ -1,9 +1,9 @@
-'use strict';
-
-var path   = require('path');
-var server = require('karma').server;
-
 module.exports = function (grunt) {
+    'use strict';
+
+    var path   = require('path');
+    var server = require('karma').server;
+
     grunt.registerMultiTask('karma', 'run karma.', function() {
         var done = this.async();
         var options = this.options({
