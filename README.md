@@ -3,6 +3,8 @@
 Node Pixi Renderer
 =============
 
+This is fork of Pixi.JS mainly for browserify, but has also went in a slightly different direction in terms of programming style. I am open to major refactors if necessary, and it might even be completely rewritten in TypeScript in the future (not there yet).
+
 #### JavaScript 2D Renderer ####
 
 The aim of this project is to provide a fast lightweight 2D library that works
