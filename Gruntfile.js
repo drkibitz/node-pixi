@@ -95,16 +95,24 @@ module.exports = function(grunt) {
             }
         },
         jshint: {
-            beforeconcat: srcFiles,
+            beforeconcat: {
+                src: srcFiles,
+                options: {
+                    jshintrc: '.jshintrc',
+                    ignores: ['<%= dirs.src %>/{Intro,Outro}.js']
+                }
+            },
+            afterconcat: {
+                src: '<%= files.build %>',
+                options: {
+                    jshintrc: '.jshintrc',
+                }
+            },
             test: {
                 src: ['<%= files.testBlob %>'],
                 options: {
                     expr: true
                 }
-            },
-            options: {
-                asi: true,
-                smarttabs: true
             }
         },
         uglify: {
@@ -183,10 +191,11 @@ module.exports = function(grunt) {
         }
     )
 
-    grunt.registerTask('build', ['concat', 'uglify', 'distribute']);
-    grunt.registerTask('test', ['concat', 'jshint:test', 'karma']);
+    grunt.registerTask('lintconcat', ['jshint:beforeconcat', 'concat', 'jshint:afterconcat']);
+    grunt.registerTask('build', ['lintconcat', 'uglify', 'distribute']);
+    grunt.registerTask('test', ['lintconcat', 'jshint:test', 'karma']);
     grunt.registerTask('docs', ['yuidoc']);
     grunt.registerTask('default', ['test', 'uglify', 'distribute']);
     // Travis CI task.
     grunt.registerTask('travis', ['test']);
-}
+};
