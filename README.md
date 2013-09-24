@@ -1,9 +1,7 @@
-Pixi Renderer
+[![Build Status](https://secure.travis-ci.org/drkibitz/node-pixi.png)](http://travis-ci.org/drkibitz/node-pixi)
+
+Node Pixi Renderer
 =============
-
-![pixi.js logo](http://www.goodboydigital.com/pixijs/logo_small.png)
-
-[![Build Status](https://secure.travis-ci.org/drkibitz/pixi.js.png)](http://travis-ci.org/drkibitz/pixi.js)
 
 #### JavaScript 2D Renderer ####
 
@@ -123,15 +121,16 @@ It also copies the non-minified version to the examples.
 
 ```javascript
 
-	// You can use either PIXI.WebGLRenderer or PIXI.CanvasRenderer
-	var renderer = new PIXI.WebGLRenderer(800, 600);
+	var pixi = require('pixi');
+	// You can use either WebGLRenderer or CanvasRenderer
+	var renderer = pixi.WebGLRenderer(800, 600);
 
 	document.body.appendChild(renderer.view);
 
-	var stage = new PIXI.Stage;
+	var stage = new pixi.Stage;
 
-	var bunnyTexture = PIXI.Texture.fromImage("bunny.png");
-	var bunny = new PIXI.Sprite(bunnyTexture);
+	var bunnyTexture = pixi.Texture.fromImage("bunny.png");
+	var bunny = new pixi.Sprite(bunnyTexture);
 
 	bunny.position.x = 400;
 	bunny.position.y = 300;
