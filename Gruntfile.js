@@ -1,11 +1,12 @@
-'use strict';
-
 module.exports = function(grunt) {
+    'use strict';
+
     grunt.loadNpmTasks('grunt-contrib-jshint');
+    grunt.loadNpmTasks('grunt-browserify');
     grunt.loadNpmTasks('grunt-contrib-uglify');
+    grunt.loadNpmTasks('grunt-contrib-copy');
     grunt.loadNpmTasks('grunt-contrib-connect');
     grunt.loadNpmTasks('grunt-contrib-yuidoc');
-    grunt.loadNpmTasks('grunt-browserify');
     grunt.loadTasks('tasks');
 
     var banner = [
@@ -25,44 +26,44 @@ module.exports = function(grunt) {
     grunt.initConfig({
         // Configure values
         package : grunt.file.readJSON('package.json'),
-        dirs: {
+        dir: {
             build    : 'bin',
             docs     : 'docs',
-            examples : 'examples',
+            example  : 'example',
             src      : 'src',
             test     : 'test'
         },
-        files: {
-            build    : '<%= dirs.build %>/pixi.js',
-            buildMin : '<%= dirs.build %>/pixi.min.js'
+        file: {
+            build    : '<%= dir.build %>/pixi.js',
+            buildMin : '<%= dir.build %>/pixi.min.js'
         },
 
         // Configure tasks
         browserify: {
-            dist: {
+            bin: {
                 files: {
-                    '<%= files.build %>': ['<%= dirs.src %>/pixi.js'],
+                    '<%= file.build %>': ['<%= dir.src %>/pixi.js'],
                 }
             }
         },
         jshint: {
             beforeconcat: {
-                src: '<%= dirs.src %>/**/*.js',
+                src: '<%= dir.src %>/**/*.js',
                 options: {
                     jshintrc: '.jshintrc',
                     ignores: [
-                        '<%= dirs.src %>/pixi/filters/MaskFilter.js'
+                        '<%= dir.src %>/pixi/filters/MaskFilter.js'
                     ]
                 }
             },
             afterconcat: {
-                src: '<%= files.build %>',
+                src: '<%= file.build %>',
                 options: {
                     jshintrc: '.jshintrc',
                 }
             },
             test: {
-                src: ['<%= dirs.test %>/{functional,lib/pixi,unit}/**/*.js'],
+                src: ['<%= dir.test %>/{functional,lib/pixi,unit}/**/*.js'],
                 options: {
                     expr: true
                 }
@@ -72,28 +73,35 @@ module.exports = function(grunt) {
             options: {
                 banner: banner
             },
-            dist: {
-                src: '<%= files.build %>',
-                dest: '<%= files.buildMin %>'
+            bin: {
+                src: '<%= file.build %>',
+                dest: '<%= file.buildMin %>'
             }
         },
-        distribute: {
-            examples: [
-                'examples/example 1 - Basics',
-                'examples/example 2 - SpriteSheet',
-                'examples/example 3 - MovieClip',
-                'examples/example 4 - Balls',
-                'examples/example 5 - Morph',
-                'examples/example 6 - Interactivity',
-                'examples/example 7 - Transparent Background',
-                'examples/example 8 - Dragging',
-                'examples/example 9 - Tiling Texture',
-                'examples/example 10 - Text',
-                'examples/example 11 - RenderTexture',
-                'examples/example 12 - Spine',
-                'examples/example 13 - Graphics',
-                'examples/example 14 - Masking'
-            ]
+        copy: {
+            examples: {
+                files: [
+                    '1-basics',
+                    '2-sprite-sheet',
+                    '3-movie-clip',
+                    '4-balls',
+                    '5-morph',
+                    '6-interactivity',
+                    '7-transparent-background',
+                    '8-dragging',
+                    '9-tiling-texture',
+                    '10-text',
+                    '11-render-texture',
+                    '12-spine',
+                    '13-graphics',
+                    '14-masking'
+                ].map(function (name) {
+                    return {
+                        src: '<%= file.buildMin %>',
+                        dest: '<%= dir.example %>/' + name + '/pixi.js'
+                    };
+                })
+            }
         },
         connect: {
             test: {
@@ -105,14 +113,14 @@ module.exports = function(grunt) {
             }
         },
         yuidoc: {
-            compile: {
+            docs: {
                 name: '<%= package.name %>',
                 description: '<%= package.description %>',
                 version: '<%= package.version %>',
                 url: '<%= package.homepage %>',
                 options: {
-                    paths: '<%= dirs.src %>',
-                    outdir: '<%= dirs.docs %>'
+                    paths: '<%= dir.src %>',
+                    outdir: '<%= dir.docs %>'
                 }
             }
         },
@@ -125,11 +133,11 @@ module.exports = function(grunt) {
         }
     });
 
-    grunt.registerTask('lintconcat', ['jshint:beforeconcat', 'browserify:dist', 'jshint:afterconcat']);
-    grunt.registerTask('build', ['lintconcat', 'uglify', 'distribute']);
-    grunt.registerTask('test', ['lintconcat', 'jshint:test', 'karma']);
-    grunt.registerTask('docs', ['yuidoc']);
-    grunt.registerTask('default', ['test', 'uglify', 'distribute']);
+    grunt.registerTask('lintconcat', ['jshint:beforeconcat', 'browserify:bin', 'jshint:afterconcat']);
+    grunt.registerTask('build', ['lintconcat', 'uglify:bin', 'copy:examples']);
+    grunt.registerTask('test', ['lintconcat', 'jshint:test', 'karma:unit']);
+    grunt.registerTask('docs', ['yuidoc:docs']);
+    grunt.registerTask('default', ['test', 'uglify:bin', 'copy:examples']);
     // Travis CI task.
     grunt.registerTask('travis', ['test']);
 };

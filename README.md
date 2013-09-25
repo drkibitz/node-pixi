@@ -3,7 +3,9 @@
 
 # Node Pixi Renderer
 
-This is a fork of [Pixi.JS](https://github.com/GoodBoyDigital/pixi.js) mainly for use with [browserify](http://browserify.org/), but has also went in a slightly different direction in terms of programming style. *Basically, I am open to MAJOR refactors if they are appropriate, and it might even be completely rewritten in TypeScript in the future (not there yet). Also in the future the goals may differ from Pixi.JS. I may streamline things and standardize only on WebGL, and sooner rather than later (Saying goodbye to the 2d context).*
+This is a fork of [Pixi.JS](https://github.com/GoodBoyDigital/pixi.js) mainly for use with [browserify](http://browserify.org/), but has also went in a slightly different direction in terms of programming style.
+
+*Basically, I am open to MAJOR refactors if they are appropriate, and it might even be completely rewritten in TypeScript in the future (not there yet). Also in the future the goals may differ from Pixi.JS. I may streamline things and standardize only on WebGL, and sooner rather than later (Saying goodbye to the 2d context).*
 
 ### Pixi.JS JavaScript 2D Renderer
 
@@ -15,6 +17,23 @@ The aim of this project is to provide a fast lightweight 2D library that works a
 - [Pixi.JS Tutorials and other helpful bits](https://github.com/GoodBoyDigital/pixi.js/wiki/Resources)
 
 This content is released under the (http://opensource.org/licenses/MIT) MIT License.
+
+## Examples
+
+- [Basics](http://drkibitz.github.io/node-pixi/example/1-basics/)
+- [SpriteSheet](http://drkibitz.github.io/node-pixi/example/2-sprite-sheet/)
+- [MovieClip](http://drkibitz.github.io/node-pixi/example/3-movie-clip/)
+- [Balls](http://drkibitz.github.io/node-pixi/example/4-balls/)
+- [Morph](http://drkibitz.github.io/node-pixi/example/5-morph/)
+- [Interactivity](http://drkibitz.github.io/node-pixi/example/6-interactivity/)
+- [Transparent Background](http://drkibitz.github.io/node-pixi/example/7-transparent-background/)
+- [Dragging](http://drkibitz.github.io/node-pixi/example/8-dragging/)
+- [Tiling Texture](http://drkibitz.github.io/node-pixi/example/9-tiling-texture/)
+- [Text](http://drkibitz.github.io/node-pixi/example/10-text/)
+- [RenderTexture](http://drkibitz.github.io/node-pixi/example/11-render-texture/)
+- [Spine](http://drkibitz.github.io/node-pixi/example/12-spine/)
+- [Graphics](http://drkibitz.github.io/node-pixi/example/13-graphics/)
+- [Masking](http://drkibitz.github.io/node-pixi/example/14-masking/)
 
 ## Install
 
@@ -112,7 +131,7 @@ grunt
 
 This will lint the source, browserify the source to `bin/pixi.js`, lint the compiled file, run tests, and finally create a minified version at `bin/pixi.min.js`. It also copies the minified version to the all the example directories.
 
-You may run a dev server to see the examples, one is provided as a task here:
+You may run any dev server to view the examples in the **gh-pages** branch, but one is provided as a task here:
 ```
 grunt connect
 ```
@@ -127,4 +146,5 @@ grunt test
 ```
 
 - The test suite uses the [karma-runner](http://karma-runner.github.io/0.10/index.html)
+- The test suite expects Firefox to be installed (This can be configured in `karma.conf.js`)
 - Tests are run for every [Travis CI](https://travis-ci.org/) build
