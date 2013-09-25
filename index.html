@@ -36,7 +36,9 @@
 
 <p>This is a fork of <a href="https://github.com/GoodBoyDigital/pixi.js">Pixi.JS</a> mainly for use with <a href="http://browserify.org/">browserify</a>, but has also went in a slightly different direction in terms of programming style.</p>
 
-<p><em>Basically, I am open to MAJOR refactors if they are appropriate, and it might even be completely rewritten in TypeScript in the future (not there yet). Also in the future the goals may differ from Pixi.JS. I may streamline things and standardize only on WebGL, and sooner rather than later (Saying goodbye to the 2d context).</em></p>
+<p>As of version 0.0.1, this is the first iteration and matches the public Pixi.JS API, but now modular with browserify. In later versions, the public API and architecture are subject to change and may no longer match Pixi.JS.</p>
+
+<p><em>Basically, I am open to MAJOR refactors if they are appropriate, and it might even be completely rewritten in TypeScript in the future (not there yet). Also in the future, the goals may differ from Pixi.JS. I may streamline things and standardize only on WebGL, and maybe sooner rather than later (Saying goodbye to context 2d).</em></p>
 
 <h3>
 <a name="pixijs-javascript-2d-renderer" class="anchor" href="#pixijs-javascript-2d-renderer"><span class="octicon octicon-link"></span></a>Pixi.JS JavaScript 2D Renderer</h3>
@@ -82,7 +84,7 @@
 <h3>
 <a name="basic" class="anchor" href="#basic"><span class="octicon octicon-link"></span></a>Basic</h3>
 
-<p>Once installed as a <code>node_module</code>, it can now be used with browserify as follows:</p>
+<p>Once installed as a <code>node_module</code>, it can now be used in node and with browserify.</p>
 
 <p>Example main.js:</p>
 
@@ -136,16 +138,7 @@
 </pre></div>
 
 <h2>
-<a name="coming-soon" class="anchor" href="#coming-soon"><span class="octicon octicon-link"></span></a>Coming Soon</h2>
-
-<ul>
-<li><strong>node-pixi goals</strong></li>
-<li><strong>node-pixi roadmap</strong></li>
-<li><strong>node-pixi documentation</strong></li>
-<li><strong>either update wiki, or remove it</strong></li>
-<li><strong>complete unit tests, and working functional tests</strong></li>
-</ul><h2>
-<a name="build-from-source" class="anchor" href="#build-from-source"><span class="octicon octicon-link"></span></a>Build from Source</h2>
+<a name="build" class="anchor" href="#build"><span class="octicon octicon-link"></span></a>Build</h2>
 
 <p>node-pixi can be compiled with <a href="http://gruntjs.com/">Grunt</a>. If you don't already have this, go install <a href="http://nodejs.org/">Node</a> and <a href="https://npmjs.org/">NPM</a> then install the <a href="http://gruntjs.com/getting-started">Grunt Command Line</a>.</p>
 
@@ -157,29 +150,31 @@
 <pre lang="shell"><code>git clone https://github.com/drkibitz/node-pixi.git
 </code></pre>
 
-<p>Then, in the folder where you have downloaded the source, install the devDependencies using npm:</p>
+<p>Then, within your cloned repository, install the node-pixi's devDependencies using NPM:</p>
 
 <pre lang="shell"><code>npm install
 </code></pre>
 
-<p>Then build:</p>
+<p>Then build with Grunt:</p>
 
 <pre><code>grunt
 </code></pre>
 
-<p>This will lint the source, browserify the source to <code>bin/pixi.js</code>, lint the compiled file, run tests, and finally create a minified version at <code>bin/pixi.min.js</code>. It also copies the minified version to the all the example directories.</p>
+<p>The default task will lint the source, browserify the source to <code>bin/pixi.js</code>, lint the bundle, run tests, and finally minify the bundle at <code>bin/pixi.min.js</code>. It also copies the minified bundle to the the example directories which are a part of the <strong>gh-pages</strong> branch.</p>
 
-<p>You may run any dev server to view the examples in the <strong>gh-pages</strong> branch, but one is provided as a task here:</p>
+<p>You should run a dev server to view the examples in the <strong>gh-pages</strong> branch, one is also provided as a task:</p>
 
 <pre><code>grunt connect
 </code></pre>
+
+<p>Please see take a look at this project's <code>Gruntfile.js</code> for more info.</p>
 
 <h2>
 <a name="contribute" class="anchor" href="#contribute"><span class="octicon octicon-link"></span></a>Contribute</h2>
 
 <p>Want to contribute to node-pixi? Just make a pull request or a suggestion on <a href="https://github.com/drkibitz/node-pixi/issues">Github</a>. Please make sure you write tests, and run them before committing changes.</p>
 
-<p>If you followed the steps in the <strong>Build from Source</strong> section, then you can run the tests locally:</p>
+<p>If you followed the steps in the <strong>Build from Source</strong> section, then you can now run the tests locally:</p>
 
 <pre><code>grunt test
 </code></pre>
@@ -187,8 +182,17 @@
 <ul>
 <li>The test suite uses the <a href="http://karma-runner.github.io/0.10/index.html">karma-runner</a>
 </li>
-<li>The test suite expects Firefox to be installed (This can be configured in <code>karma.conf.js</code>)</li>
+<li>The test suite expects Firefox to be installed (This can be configured in <code>test/karma.conf.js</code>)</li>
 <li>Tests are run for every <a href="https://travis-ci.org/">Travis CI</a> build</li>
+</ul><h2>
+<a name="coming-soon" class="anchor" href="#coming-soon"><span class="octicon octicon-link"></span></a>Coming Soon</h2>
+
+<ul>
+<li><strong>node-pixi goals</strong></li>
+<li><strong>node-pixi roadmap</strong></li>
+<li><strong>node-pixi documentation</strong></li>
+<li><strong>either update wiki, or remove it</strong></li>
+<li><strong>complete unit tests, and working functional tests</strong></li>
 </ul>
       </section>
       <footer>
