@@ -1,11 +1,15 @@
 {
   "author": "Dr. Kibitz <info@drkibitz.com>",
   "bugs": "https://github.com/drkibitz/node-pixi/issues",
-  "contributors": ["Mat Groves <mat@goodboydigital.com>", "Chad Engler <chad@pantherdev.com>"],
+  "contributors": [
+    "Mat Groves <mat@goodboydigital.com>",
+    "Chad Engler <chad@pantherdev.com>"
+  ],
   "devDependencies": {
     "grunt": "~0.4.x",
     "grunt-contrib-jshint": "0.6.x",
     "grunt-contrib-uglify": "0.2.x",
+    "grunt-contrib-copy": "~0.4.1",
     "grunt-contrib-connect": "0.3.x",
     "grunt-contrib-yuidoc": "0.4.x",
     "grunt-browserify": "~1.2.4",
@@ -14,7 +18,7 @@
     "karma-firefox-launcher": "0.1.0",
     "karma-mocha": "0.1.0"
   },
-  "description": "pixi is a fast lightweight 2D library that works across all devices.",
+  "description": "Super fast 2D rendering engine for browserify, that uses WebGL with a context 2d fallback.",
   "files": [
     "bin",
     "src"
