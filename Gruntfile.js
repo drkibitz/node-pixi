@@ -48,7 +48,11 @@ module.exports = function(grunt) {
         },
         jshint: {
             beforeconcat: {
-                src: '<%= dir.src %>/**/*.js',
+                src: [
+                    'Gruntfile.js',
+                    'tasks/**/*.js',
+                    '<%= dir.src %>/**/*.js'
+                ],
                 options: {
                     jshintrc: '.jshintrc',
                     ignores: [
@@ -63,7 +67,11 @@ module.exports = function(grunt) {
                 }
             },
             test: {
-                src: ['<%= dir.test %>/{functional,lib/pixi,unit}/**/*.js'],
+                src: [
+                    '<%= dir.test %>/lib/pixi/**/*.js',
+                    '<%= dir.test %>/unit/**/*.js',
+                    '<%= dir.test %>/functional/**/*.js'
+                ],
                 options: {
                     expr: true
                 }
