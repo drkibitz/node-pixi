@@ -5,7 +5,9 @@
 
 This is a fork of [Pixi.JS](https://github.com/GoodBoyDigital/pixi.js) mainly for use with [browserify](http://browserify.org/), but has also went in a slightly different direction in terms of programming style.
 
-*Basically, I am open to MAJOR refactors if they are appropriate, and it might even be completely rewritten in TypeScript in the future (not there yet). Also in the future the goals may differ from Pixi.JS. I may streamline things and standardize only on WebGL, and sooner rather than later (Saying goodbye to the 2d context).*
+As of version 0.0.1, this is the first iteration and matches the public Pixi.JS API, but now modular with browserify. In later versions, the public API and architecture are subject to change and may no longer match Pixi.JS.
+
+*Basically, I am open to MAJOR refactors if they are appropriate, and it might even be completely rewritten in TypeScript in the future (not there yet). Also in the future, the goals may differ from Pixi.JS. I may streamline things and standardize only on WebGL, and maybe sooner rather than later (Saying goodbye to context 2d).*
 
 ### Pixi.JS JavaScript 2D Renderer
 
@@ -47,7 +49,7 @@ npm install pixi
 
 ### Basic
 
-Once installed as a `node_module`, it can now be used with browserify as follows:
+Once installed as a `node_module`, it can now be used in node and with browserify.
 
 Example main.js:
 ```javascript
@@ -99,15 +101,7 @@ var stage = new Stage();
 // ... etc ...
 ```
 
-## Coming Soon
-
-- **node-pixi goals**
-- **node-pixi roadmap**
-- **node-pixi documentation**
-- **either update wiki, or remove it**
-- **complete unit tests, and working functional tests**
-
-## Build from Source
+## Build
 
 node-pixi can be compiled with [Grunt](http://gruntjs.com/). If you don't already have this, go install [Node](http://nodejs.org/) and [NPM](https://npmjs.org/) then install the [Grunt Command Line](http://gruntjs.com/getting-started).
 ```shell
@@ -119,32 +113,42 @@ Get the source:
 git clone https://github.com/drkibitz/node-pixi.git
 ```
 
-Then, in the folder where you have downloaded the source, install the devDependencies using npm:
+Then, within your cloned repository, install the node-pixi's devDependencies using NPM:
 ```shell
 npm install
 ```
 
-Then build:
+Then build with Grunt:
 ```
 grunt
 ```
 
-This will lint the source, browserify the source to `bin/pixi.js`, lint the compiled file, run tests, and finally create a minified version at `bin/pixi.min.js`. It also copies the minified version to the all the example directories.
+The default task will lint the source, browserify the source to `bin/pixi.js`, lint the bundle, run tests, and finally minify the bundle at `bin/pixi.min.js`. It also copies the minified bundle to the the example directories which are a part of the **gh-pages** branch.
 
-You may run any dev server to view the examples in the **gh-pages** branch, but one is provided as a task here:
+You should run a dev server to view the examples in the **gh-pages** branch, one is also provided as a task:
 ```
 grunt connect
 ```
+
+Please see take a look at this project's `Gruntfile.js` for more info.
 
 ## Contribute
 
 Want to contribute to node-pixi? Just make a pull request or a suggestion on [Github](https://github.com/drkibitz/node-pixi/issues). Please make sure you write tests, and run them before committing changes.
 
-If you followed the steps in the **Build from Source** section, then you can run the tests locally:
+If you followed the steps in the **Build from Source** section, then you can now run the tests locally:
 ```
 grunt test
 ```
 
 - The test suite uses the [karma-runner](http://karma-runner.github.io/0.10/index.html)
-- The test suite expects Firefox to be installed (This can be configured in `karma.conf.js`)
+- The test suite expects Firefox to be installed (This can be configured in `test/karma.conf.js`)
 - Tests are run for every [Travis CI](https://travis-ci.org/) build
+
+## Coming Soon
+
+- **node-pixi goals**
+- **node-pixi roadmap**
+- **node-pixi documentation**
+- **either update wiki, or remove it**
+- **complete unit tests, and working functional tests**
