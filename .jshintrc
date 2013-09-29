@@ -20,8 +20,6 @@
         "module",
         "window",
         "document",
-        "Image",
-        "HTMLImageElement",
         "Uint16Array",
         "Float32Array",
         "XMLHttpRequest"

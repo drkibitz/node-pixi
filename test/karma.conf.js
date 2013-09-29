@@ -2,22 +2,15 @@ module.exports = function(config) {
     config.set({
 
         // base path, that will be used to resolve files and exclude
-        basePath : '../',
+        //basePath : './',
 
         frameworks : ['mocha'],
 
         // list of files / patterns to load in the browser
-        files : [
-            'node_modules/chai/chai.js',
-            'bin/pixi.js',
-            'test/lib/**/*.js',
-            'test/unit/**/*.js',
-            // 'test/functional/**/*.js',
-            {pattern: 'test/**/*.png', watched: false, included: false, served: true}
-        ],
+        //files : [],
 
         // list of files to exclude
-        exclude : [],
+        //exclude : [],
 
         // use dolts reporter, as travis terminal does not support escaping sequences
         // possible values: 'dots', 'progress', 'junit', 'teamcity'
@@ -54,7 +47,7 @@ module.exports = function(config) {
         // - PhantomJS
         // - IE (only Windows)
         // CLI --browsers Chrome,Firefox,Safari
-        browsers : ['Firefox'],
+        browsers : process.env.TRAVIS ? ['Firefox'] : ['Chrome'], // Sorry, I like Chrome
 
         // If browser does not capture in given timeout [ms], kill it
         // CLI --capture-timeout 5000
@@ -68,15 +61,15 @@ module.exports = function(config) {
         // CLI --report-slower-than 500
         reportSlowerThan : 1000,
 
-        preprocessors : {
-            //    '**/client/js/*.js': 'coverage'
-        },
+        //preprocessors : {
+        //    '**/client/js/*.js': 'coverage'
+        //},
 
         plugins : [
             'karma-mocha',
-            // 'karma-chrome-launcher',
+            'karma-chrome-launcher',
             'karma-firefox-launcher',
-            // 'karma-phantomjs-launcher'
+            'karma-phantomjs-launcher'
         ]
     });
 };

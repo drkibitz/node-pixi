@@ -5,7 +5,7 @@
 
 This is a fork of [Pixi.JS](https://github.com/GoodBoyDigital/pixi.js) mainly for use with [browserify](http://browserify.org/), but has also went in a slightly different direction in terms of programming style.
 
-As of version 0.0.1, this is the first iteration and matches the public Pixi.JS API, but now modular with browserify. In later versions, the public API and architecture are subject to change and may no longer match Pixi.JS.
+As of the currest version, node-pixi matches the public Pixi.JS API, but now modular with browserify. In later versions, the public API and architecture are subject to change and may no longer match Pixi.JS. If/when such split occurs the project's versioning and branching will be updated occordingly.
 
 *Basically, I am open to MAJOR refactors if they are appropriate, and it might even be completely rewritten in TypeScript in the future (not there yet). Also in the future, the goals may differ from Pixi.JS. I may streamline things and standardize only on WebGL, and maybe sooner rather than later (Saying goodbye to context 2d).*
 
@@ -84,15 +84,15 @@ function animate() {
 
 ### Alternative
 
-You can completely bypass requiring the main `pixi` module, and go directly for the submodules. This is more verbose than it should be right now, but will get better in the future. Doing this makes sure you only require what you need when you need it.
+You can completely bypass requiring the main `pixi` module, and go directly for the submodules. Doing this makes sure you only require what you need when you need it.
 
 Example main.js:
 ```javascript
 // Require modules
-var Sprite = require('pixi/src/pixi/display/Sprite');
-var Stage = require('pixi/src/pixi/display/Stage');
-var Texture = require('pixi/src/pixi/textures/Texture');
-var WebGLRenderer = require('pixi/src/pixi/renderers/webgl/WebGLRenderer');
+var Sprite = require('pixi/display/Sprite');
+var Stage = require('pixi/display/Stage');
+var Texture = require('pixi/textures/Texture');
+var WebGLRenderer = require('pixi/renderers/webgl/WebGLRenderer');
 
 var renderer = WebGLRenderer(800, 600);
 document.body.appendChild(renderer.view);
@@ -113,24 +113,29 @@ Get the source:
 git clone https://github.com/drkibitz/node-pixi.git
 ```
 
-Then, within your cloned repository, install the node-pixi's devDependencies using NPM:
+It's important to clone the source, and not assume that the source is the same is what is published to NPM. The package on NPM is and should be considered a distributed release only, and is not compatible with the build process outlined here. To avoid any confusion about this, the published package.json has NO `devDependencies`, while the `devDependencies` of the source package.json remain.
+
+[![devDependency Status](https://david-dm.org/drkibitz/node-pixi/dev-status.png)](https://david-dm.org/drkibitz/node-pixi#info=devDependencies)
+
+The source repository is a valid NPM package with the same name of the distributed NPM package. Meaning it can also be installed with NPM, and directly from Github. There are a few ways to define a URL to do this between NPM and Github, just read [npm-faq](https://npmjs.org/doc/faq.html). I would recommend the following example, which runs very fast. I tend to prefer installing from Github tarballs rather than the Git protocol to avoiding transferring the history. This is a *significantly faster* installation:
 ```shell
+npm install https://github.com/drkibitz/node-pixi/archive/master.tar.gz
+```
+
+Now with your repository cloned, install the previously mentioned `devDependencies` using NPM:
+```shell
+cd path/to/clone/
 npm install
 ```
 
-Then build with Grunt:
+If the install was successful, you should now be able to build node-pixi with Grunt. Within your clone, run the default Grunt task:
 ```
 grunt
 ```
 
-The default task will lint the source, browserify the source to `bin/pixi.js`, lint the bundle, run tests, and finally minify the bundle at `bin/pixi.min.js`. It also copies the minified bundle to the the example directories which are a part of the **gh-pages** branch.
+The default task is a slightly extended version of the continious integration task (for Travis CI). In addition to building and testing both debug and release bundles, it creates project analysis reports using [plato](https://github.com/es-analysis/plato), and then copies the release bundle to the example directories meant to be committed to the **gh-pages** branch.
 
-You should run a dev server to view the examples in the **gh-pages** branch, one is also provided as a task:
-```
-grunt connect
-```
-
-Please see take a look at this project's `Gruntfile.js` for more info.
+Please see take a look at this project's `Gruntfile.js` for more information on tasks, and task configuration.
 
 ## Contribute
 

@@ -2,7 +2,6 @@ describe('Example 1 - Basics', function () {
     'use strict';
 
     var baseUri = '/base/test/functional/example-1-basics';
-    var expect = chai.expect;
     var currentFrame = 0;
     var frameEvents = {};
     var stage;

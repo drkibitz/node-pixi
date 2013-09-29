@@ -7,23 +7,21 @@
   ],
   "devDependencies": {
     "grunt": "~0.4.1",
+    "grunt-browserify": "~1.2.8",
+    "grunt-contrib-clean": "~0.5.0",
+    "grunt-contrib-copy": "~0.4.1",
     "grunt-contrib-jshint": "~0.6.4",
     "grunt-contrib-uglify": "~0.2.4",
-    "grunt-contrib-copy": "~0.4.1",
-    "grunt-contrib-connect": "~0.5.0",
     "grunt-contrib-yuidoc": "~0.5.0",
-    "grunt-browserify": "~1.2.4",
-    "chai": "~1.8.0",
+    "grunt-mocha-test": "~0.7.0",
+    "grunt-plato": "~0.2.1",
     "karma": "~0.11.0",
     "karma-firefox-launcher": "~0.1.0",
     "karma-mocha": "~0.1.0",
-    "mocha": "~1.13.0"
+    "mocha": "~1.13.0",
+    "node-pixi-pixitest": "https://github.com/drkibitz/node-pixi-pixitest/archive/v0.0.1.tar.gz"
   },
   "description": "Super fast 2D rendering engine for browserify, that uses WebGL with a context 2d fallback.",
-  "files": [
-    "bin",
-    "src"
-  ],
   "homepage": "http://drkibitz.github.io/node-pixi/",
   "keywords": [
     "pixi",
@@ -34,11 +32,10 @@
     "browserify"
   ],
   "license": "MIT",
-  "main": "src/pixi.js",
   "name": "pixi",
   "repository": "https://github.com/drkibitz/node-pixi",
   "scripts": {
     "test": "grunt travis --verbose"
   },
-  "version": "0.0.1"
+  "version": "0.1.0"
 }
