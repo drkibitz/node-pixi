@@ -29,6 +29,13 @@ function ImageLoader(url, crossorigin)
      * @type Texture
      */
     this.texture = Texture.fromImage(url, crossorigin);
+
+    /**
+     * if the image is loaded with loadFramedSpriteSheet
+     * frames will contain the sprite sheet frames
+     *
+     */
+    this.frames = [];
 }
 
 var proto = ImageLoader.prototype;
@@ -63,6 +70,51 @@ proto.load = function load()
 proto.onLoaded = function onLoaded()
 {
     this.dispatchEvent({type: "loaded", content: this});
+};
+
+/**
+ * Loads image and split it to uniform sized frames
+ *
+ *
+ * @method loadFramedSpriteSheet
+ * @param frameWidth {Number} with of each frame
+ * @param frameHeight {Number} height of each frame
+ * @param textureName {String} if given, the frames will be cached in <textureName>-<ord> format
+ */
+proto.loadFramedSpriteSheet = function(frameWidth, frameHeight, textureName)
+{
+    this.frames = [];
+    var cols = Math.floor(this.texture.width / frameWidth);
+    var rows = Math.floor(this.texture.height / frameHeight);
+
+    var i=0;
+    for (var y=0; y<rows; y++)
+    {
+        for (var x=0; x<cols; x++,i++)
+        {
+            var texture = new Texture(this.texture, {
+                x: x*frameWidth,
+                y: y*frameHeight,
+                width: frameWidth,
+                height: frameHeight
+            });
+
+            this.frames.push(texture);
+            if (textureName) Texture.cache[textureName+'-'+i] = texture;
+        }
+    }
+
+    if(!this.texture.baseTexture.hasLoaded)
+    {
+        var scope = this;
+        this.texture.baseTexture.addEventListener("loaded", function() {
+            scope.onLoaded();
+        });
+    }
+    else
+    {
+        this.onLoaded();
+    }
 };
 
 AssetLoader.registerLoaderType('jpg', ImageLoader);

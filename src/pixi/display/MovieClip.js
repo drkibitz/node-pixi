@@ -76,6 +76,21 @@ var proto = MovieClip.prototype = Object.create(Sprite.prototype, {
 });
 
 /**
+* [read-only] totalFrames is the total number of frames in the MovieClip. This is the same as number of textures
+* assigned to the MovieClip.
+*
+* @property totalFrames
+* @type Number
+* @default 0
+* @readOnly
+*/
+Object.defineProperty(proto, 'totalFrames', {
+    get: function() {
+        return this.textures.length;
+    }
+});
+
+/**
  * Stops the MovieClip
  *
  * @method stop

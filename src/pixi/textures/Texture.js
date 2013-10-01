@@ -16,7 +16,7 @@ var EventTarget = require('../events/EventTarget');
  * @uses EventTarget
  * @constructor
  * @param baseTexture {BaseTexture} The base texture source to create the texture from
- * @param frmae {Rectangle} The rectangle frame of the texture to show
+ * @param frame {Rectangle} The rectangle frame of the texture to show
  */
 function Texture(baseTexture, frame)
 {

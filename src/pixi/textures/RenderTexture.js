@@ -49,7 +49,7 @@ function RenderTexture(width, height)
     this.width = width || 100;
     this.height = height || 100;
 
-    this.indetityMatrix = mat3.create();
+    this.identityMatrix = mat3.create();
 
     this.frame = new Rectangle(0, 0, this.width, this.height);
 
@@ -180,7 +180,7 @@ proto.renderWebGL = function renderWebGL(displayObject, position, clear)
 
     //TODO -? create a new one??? dont think so!
     var originalWorldTransform = displayObject.worldTransform;
-    displayObject.worldTransform = mat3.create();//sthis.indetityMatrix;
+    displayObject.worldTransform = mat3.create();//sthis.identityMatrix;
     // modify to flip...
     displayObject.worldTransform[4] = -1;
     displayObject.worldTransform[5] = this.projection.y * 2;

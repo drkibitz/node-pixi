@@ -19,9 +19,8 @@ var Rectangle = require('../geom/Rectangle');
  * @constructor
  * @param backgroundColor {Number} the background color of the stage, easiest way to pass this in is in hex format
  *      like: 0xFFFFFF for white
- * @param interactive {Boolean} enable / disable interaction (default is false)
  */
-function Stage(backgroundColor, interactive)
+function Stage(backgroundColor)
 {
     DisplayObjectContainer.call(this);
 
@@ -41,7 +40,7 @@ function Stage(backgroundColor, interactive)
      * @property interactive
      * @type Boolean
      */
-    this.interactive = interactive;
+    this.interactive = true;
 
     /**
      * The interaction manage for this stage, manages all interactive activity on the stage
