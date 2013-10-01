@@ -1,5 +1,5 @@
 ;(function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-var global=self;/**
+var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {};/**
  * @author Dr. Kibitz <info@drkibitz.com>
  */
 global.PIXI = module.exports = (function () {
@@ -1771,6 +1771,21 @@ var proto = MovieClip.prototype = Object.create(Sprite.prototype, {
 });
 
 /**
+* [read-only] totalFrames is the total number of frames in the MovieClip. This is the same as number of textures
+* assigned to the MovieClip.
+*
+* @property totalFrames
+* @type Number
+* @default 0
+* @readOnly
+*/
+Object.defineProperty(proto, 'totalFrames', {
+    get: function() {
+        return this.textures.length;
+    }
+});
+
+/**
  * Stops the MovieClip
  *
  * @method stop
@@ -2071,9 +2086,8 @@ var Rectangle = require('../geom/Rectangle');
  * @constructor
  * @param backgroundColor {Number} the background color of the stage, easiest way to pass this in is in hex format
  *      like: 0xFFFFFF for white
- * @param interactive {Boolean} enable / disable interaction (default is false)
  */
-function Stage(backgroundColor, interactive)
+function Stage(backgroundColor)
 {
     DisplayObjectContainer.call(this);
 
@@ -2093,7 +2107,7 @@ function Stage(backgroundColor, interactive)
      * @property interactive
      * @type Boolean
      */
-    this.interactive = interactive;
+    this.interactive = true;
 
     /**
      * The interaction manage for this stage, manages all interactive activity on the stage
@@ -3861,6 +3875,13 @@ function ImageLoader(url, crossorigin)
      * @type Texture
      */
     this.texture = Texture.fromImage(url, crossorigin);
+
+    /**
+     * if the image is loaded with loadFramedSpriteSheet
+     * frames will contain the sprite sheet frames
+     *
+     */
+    this.frames = [];
 }
 
 var proto = ImageLoader.prototype;
@@ -3895,6 +3916,51 @@ proto.load = function load()
 proto.onLoaded = function onLoaded()
 {
     this.dispatchEvent({type: "loaded", content: this});
+};
+
+/**
+ * Loads image and split it to uniform sized frames
+ *
+ *
+ * @method loadFramedSpriteSheet
+ * @param frameWidth {Number} with of each frame
+ * @param frameHeight {Number} height of each frame
+ * @param textureName {String} if given, the frames will be cached in <textureName>-<ord> format
+ */
+proto.loadFramedSpriteSheet = function(frameWidth, frameHeight, textureName)
+{
+    this.frames = [];
+    var cols = Math.floor(this.texture.width / frameWidth);
+    var rows = Math.floor(this.texture.height / frameHeight);
+
+    var i=0;
+    for (var y=0; y<rows; y++)
+    {
+        for (var x=0; x<cols; x++,i++)
+        {
+            var texture = new Texture(this.texture, {
+                x: x*frameWidth,
+                y: y*frameHeight,
+                width: frameWidth,
+                height: frameHeight
+            });
+
+            this.frames.push(texture);
+            if (textureName) Texture.cache[textureName+'-'+i] = texture;
+        }
+    }
+
+    if(!this.texture.baseTexture.hasLoaded)
+    {
+        var scope = this;
+        this.texture.baseTexture.addEventListener("loaded", function() {
+            scope.onLoaded();
+        });
+    }
+    else
+    {
+        this.onLoaded();
+    }
 };
 
 AssetLoader.registerLoaderType('jpg', ImageLoader);
@@ -8573,7 +8639,7 @@ function RenderTexture(width, height)
     this.width = width || 100;
     this.height = height || 100;
 
-    this.indetityMatrix = mat3.create();
+    this.identityMatrix = mat3.create();
 
     this.frame = new Rectangle(0, 0, this.width, this.height);
 
@@ -8704,7 +8770,7 @@ proto.renderWebGL = function renderWebGL(displayObject, position, clear)
 
     //TODO -? create a new one??? dont think so!
     var originalWorldTransform = displayObject.worldTransform;
-    displayObject.worldTransform = mat3.create();//sthis.indetityMatrix;
+    displayObject.worldTransform = mat3.create();//sthis.identityMatrix;
     // modify to flip...
     displayObject.worldTransform[4] = -1;
     displayObject.worldTransform[5] = this.projection.y * 2;
@@ -8803,7 +8869,7 @@ var EventTarget = require('../events/EventTarget');
  * @uses EventTarget
  * @constructor
  * @param baseTexture {BaseTexture} The base texture source to create the texture from
- * @param frmae {Rectangle} The rectangle frame of the texture to show
+ * @param frame {Rectangle} The rectangle frame of the texture to show
  */
 function Texture(baseTexture, frame)
 {
@@ -9203,7 +9269,7 @@ exports.hex2rgb = function hex2rgb(hex)
 };
 
 },{}],45:[function(require,module,exports){
-var global=self;// http://paulirish.com/2011/requestanimationframe-for-smart-animating/
+var global=typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {};// http://paulirish.com/2011/requestanimationframe-for-smart-animating/
 // http://my.opera.com/emoller/blog/2011/12/20/requestanimationframe-for-smart-er-animating
 
 // requestAnimationFrame polyfill by Erik Möller. fixes from Paul Irish and Tino Zijdel

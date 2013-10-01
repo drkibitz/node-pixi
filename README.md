@@ -113,12 +113,22 @@ Get the source:
 git clone https://github.com/drkibitz/node-pixi.git
 ```
 
-Then, within your cloned repository, install the node-pixi's devDependencies using NPM:
+It's important to clone the source, and not assume that the source is the same is what is published to NPM. The package on NPM is and should be considered a distributed release only, and is not compatible with the build process outlined here. To avoid any confusion about this, the published package.json has NO `devDependencies`, while the `devDependencies` of the source package.json remain.
+
+[![devDependency Status](https://david-dm.org/drkibitz/node-pixi/dev-status.png)](https://david-dm.org/drkibitz/node-pixi#info=devDependencies)
+
+The source repository is a valid NPM package with the same name of the distributed NPM package. Meaning it can also be installed with NPM, and directly from Github. There are a few ways to define a URL to do this between NPM and Github, just read [npm-faq](https://npmjs.org/doc/faq.html). I would recommend the following example, which runs very fast. I tend to prefer installing from Github tarballs rather than the Git protocol to avoiding transferring the history. This is a *significantly faster* installation:
 ```shell
+npm install https://github.com/drkibitz/node-pixi/archive/master.tar.gz
+```
+
+Now with your repository cloned, install the previously mentioned `devDependencies` using NPM:
+```shell
+cd path/to/clone/
 npm install
 ```
 
-Then build with Grunt:
+If the install was successful, you should now be able to build node-pixi with Grunt. Within your clone, run the default Grunt task:
 ```
 grunt
 ```
@@ -130,7 +140,7 @@ You should run a dev server to view the examples in the **gh-pages** branch, one
 grunt connect
 ```
 
-Please see take a look at this project's `Gruntfile.js` for more info.
+Please see take a look at this project's `Gruntfile.js` for more information on tasks, and task configuration.
 
 ## Contribute
 
