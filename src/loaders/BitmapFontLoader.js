@@ -9,6 +9,7 @@ var Rectangle = require('../geom/Rectangle');
 var EventTarget = require('../events/EventTarget');
 var BitmapText = require('../text/BitmapText');
 var Texture = require('../textures/Texture');
+var platform = require('../platform');
 
 /**
  * The xml loader is used to load in XML bitmap font data ("xml" or "fnt")
@@ -57,6 +58,15 @@ function BitmapFontLoader(url, crossorigin)
     this.baseUrl = url.replace(/[^\/]*$/, "");
 
     /**
+     * [read-only] Whether the data has loaded yet
+     *
+     * @property loaded
+     * @type Boolean
+     * @readOnly
+     */
+    this.loaded = false;
+
+    /**
      * [read-only] The texture of the bitmap font
      *
      * @property baseUrl
@@ -67,6 +77,15 @@ function BitmapFontLoader(url, crossorigin)
 
 var proto = BitmapFontLoader.prototype;
 
+proto.handleEvent = function handleEvent(event) {
+    switch (event.type) {
+    case 'load':
+        this.onXMLLoaded(); break;
+    default:
+        this.onError(); break;
+    }
+};
+
 /**
  * Loads the XML font data
  *
@@ -74,12 +93,9 @@ var proto = BitmapFontLoader.prototype;
  */
 proto.load = function load()
 {
-    this.request = new XMLHttpRequest();
-    var scope = this;
-    this.request.onreadystatechange = function()
-    {
-        scope.onXMLLoaded();
-    };
+    this.request = platform.createRequest();
+    this.request.addEventListener('load', this);
+    this.request.addEventListener('error', this);
 
     this.request.open("GET", this.url, true);
     if (this.request.overrideMimeType) this.request.overrideMimeType("application/xml");
@@ -94,67 +110,61 @@ proto.load = function load()
  */
 proto.onXMLLoaded = function onXMLLoaded()
 {
-    if (this.request.readyState == 4)
+    var textureUrl = this.baseUrl + this.request.responseXML.getElementsByTagName("page")[0].attributes.getNamedItem("file").nodeValue;
+    var image = new ImageLoader(textureUrl, this.crossorigin);
+    this.texture = image.texture.baseTexture;
+
+    var data = {};
+    var info = this.request.responseXML.getElementsByTagName("info")[0];
+    var common = this.request.responseXML.getElementsByTagName("common")[0];
+    data.font = info.attributes.getNamedItem("face").nodeValue;
+    data.size = parseInt(info.attributes.getNamedItem("size").nodeValue, 10);
+    data.lineHeight = parseInt(common.attributes.getNamedItem("lineHeight").nodeValue, 10);
+    data.chars = {};
+
+    //parse letters
+    var letters = this.request.responseXML.getElementsByTagName("char");
+
+    for (var i = 0; i < letters.length; i++)
     {
-        if (this.request.status == 200 || window.location.href.indexOf("http") == -1)
-        {
-            var textureUrl = this.baseUrl + this.request.responseXML.getElementsByTagName("page")[0].attributes.getNamedItem("file").nodeValue;
-            var image = new ImageLoader(textureUrl, this.crossorigin);
-            this.texture = image.texture.baseTexture;
+        var charCode = parseInt(letters[i].attributes.getNamedItem("id").nodeValue, 10);
 
-            var data = {};
-            var info = this.request.responseXML.getElementsByTagName("info")[0];
-            var common = this.request.responseXML.getElementsByTagName("common")[0];
-            data.font = info.attributes.getNamedItem("face").nodeValue;
-            data.size = parseInt(info.attributes.getNamedItem("size").nodeValue, 10);
-            data.lineHeight = parseInt(common.attributes.getNamedItem("lineHeight").nodeValue, 10);
-            data.chars = {};
+        var textureRect = new Rectangle(
+            parseInt(letters[i].attributes.getNamedItem("x").nodeValue, 10),
+            parseInt(letters[i].attributes.getNamedItem("y").nodeValue, 10),
+            parseInt(letters[i].attributes.getNamedItem("width").nodeValue, 10),
+            parseInt(letters[i].attributes.getNamedItem("height").nodeValue, 10)
+        );
 
-            //parse letters
-            var letters = this.request.responseXML.getElementsByTagName("char");
+        data.chars[charCode] = {
+            xOffset: parseInt(letters[i].attributes.getNamedItem("xoffset").nodeValue, 10),
+            yOffset: parseInt(letters[i].attributes.getNamedItem("yoffset").nodeValue, 10),
+            xAdvance: parseInt(letters[i].attributes.getNamedItem("xadvance").nodeValue, 10),
+            kerning: {},
+            texture: Texture.cache[charCode] = new Texture(this.texture, textureRect)
 
-            for (var i = 0; i < letters.length; i++)
-            {
-                var charCode = parseInt(letters[i].attributes.getNamedItem("id").nodeValue, 10);
-
-                var textureRect = new Rectangle(
-                    parseInt(letters[i].attributes.getNamedItem("x").nodeValue, 10),
-                    parseInt(letters[i].attributes.getNamedItem("y").nodeValue, 10),
-                    parseInt(letters[i].attributes.getNamedItem("width").nodeValue, 10),
-                    parseInt(letters[i].attributes.getNamedItem("height").nodeValue, 10)
-                );
-
-                data.chars[charCode] = {
-                    xOffset: parseInt(letters[i].attributes.getNamedItem("xoffset").nodeValue, 10),
-                    yOffset: parseInt(letters[i].attributes.getNamedItem("yoffset").nodeValue, 10),
-                    xAdvance: parseInt(letters[i].attributes.getNamedItem("xadvance").nodeValue, 10),
-                    kerning: {},
-                    texture: Texture.cache[charCode] = new Texture(this.texture, textureRect)
-
-                };
-            }
-
-            //parse kernings
-            var kernings = this.request.responseXML.getElementsByTagName("kerning");
-            for (i = 0; i < kernings.length; i++)
-            {
-               var first = parseInt(kernings[i].attributes.getNamedItem("first").nodeValue, 10);
-               var second = parseInt(kernings[i].attributes.getNamedItem("second").nodeValue, 10);
-               var amount = parseInt(kernings[i].attributes.getNamedItem("amount").nodeValue, 10);
-
-                data.chars[second].kerning[first] = amount;
-
-            }
-
-            BitmapText.fonts[data.font] = data;
-
-            var scope = this;
-            image.addEventListener("loaded", function() {
-                scope.onLoaded();
-            });
-            image.load();
-        }
+        };
     }
+
+    //parse kernings
+    var kernings = this.request.responseXML.getElementsByTagName("kerning");
+    for (i = 0; i < kernings.length; i++)
+    {
+       var first = parseInt(kernings[i].attributes.getNamedItem("first").nodeValue, 10);
+       var second = parseInt(kernings[i].attributes.getNamedItem("second").nodeValue, 10);
+       var amount = parseInt(kernings[i].attributes.getNamedItem("amount").nodeValue, 10);
+
+        data.chars[second].kerning[first] = amount;
+
+    }
+
+    BitmapText.fonts[data.font] = data;
+
+    var scope = this;
+    image.addEventListener("loaded", function() {
+        scope.onLoaded();
+    });
+    image.load();
 };
 
 /**
@@ -165,7 +175,19 @@ proto.onXMLLoaded = function onXMLLoaded()
  */
 proto.onLoaded = function onLoaded()
 {
+    this.loaded = true;
     this.dispatchEvent({type: "loaded", content: this});
+};
+
+/**
+ * Invoke when error occured
+ *
+ * @method onError
+ * @private
+ */
+proto.onError = function onError()
+{
+    this.dispatchEvent({type: "error", content: this});
 };
 
 AssetLoader.registerLoaderType('xml', BitmapFontLoader);

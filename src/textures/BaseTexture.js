@@ -3,6 +3,7 @@
  */
 'use strict';
 
+var platform = require('../platform');
 var globals = require('../core/globals');
 var EventTarget = require('../events/EventTarget');
 var baseTextureCache = {};
@@ -123,13 +124,10 @@ proto.destroy = function destroy()
  */
 BaseTexture.fromImage = function fromImage(imageUrl, crossorigin)
 {
-    /*global Image*/
     var baseTexture = baseTextureCache[imageUrl];
     if(!baseTexture)
     {
-        // new Image() breaks tex loading in some versions of Chrome.
-        // See https://code.google.com/p/chromium/issues/detail?id=238071
-        var image = new Image();//document.createElement('img');
+        var image = new platform.createImage();
         if (crossorigin)
         {
             image.crossOrigin = '';

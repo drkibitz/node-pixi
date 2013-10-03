@@ -3,6 +3,7 @@
  */
 'use strict';
 
+var platform = require('../../platform');
 var globals = require('../../core/globals');
 
 /*
@@ -104,7 +105,7 @@ function compileShader(gl, shaderSrc, shaderType)
     gl.compileShader(shader);
 
     if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
-        console.error(gl.getShaderInfoLog(shader));
+        platform.console.error(gl.getShaderInfoLog(shader));
         return null;
     }
 
@@ -124,7 +125,7 @@ function compileProgram(vertexSrc, fragmentSrc)
     gl.linkProgram(shaderProgram);
 
     if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
-        console.error("Could not initialise shaders");
+        platform.console.error("Could not initialise shaders");
     }
 
     return shaderProgram;

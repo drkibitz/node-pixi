@@ -3,6 +3,7 @@
  */
 'use strict';
 
+var platform = require('../../platform');
 var Graphics = require('../../primitives/Graphics');
 
 /**
@@ -162,7 +163,7 @@ exports.renderGraphicsMask = function renderGraphicsMask(graphics, context)
     if(len > 1)
     {
         len = 1;
-        console.log("Pixi.js warning: masks in canvas can only mask using the first path in the graphics object")
+        platform.console.warn("Pixi.js warning: masks in canvas can only mask using the first path in the graphics object")
     }
 
     for (var i=0; i < 1; i++)

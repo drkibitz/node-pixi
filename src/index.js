@@ -3,6 +3,7 @@
  */
 'use strict';
 
+var platform = require('./platform');
 var globals = require('./core/globals');
 var shaders = require('./renderers/webgl/shaders');
 var matrix  = require('./geom/matrix');
@@ -74,22 +75,21 @@ pixi.activatePrimitiveShader = shaders.activatePrimitiveShader;
  */
 pixi.runList = function runList(item)
 {
-    console.log(">>>>>>>>>")
-    console.log("_")
+    platform.console.log(">>>>>>>>>")
+    platform.console.log("_")
     var safe = 0;
     var tmp = item.first;
-    console.log(tmp);
+    platform.console.log(tmp);
 
     while(tmp._iNext)
     {
         safe++;
         tmp = tmp._iNext;
-        console.log(tmp);
-    //  console.log(tmp);
+        platform.console.log(tmp);
 
         if(safe > 100)
         {
-            console.log("BREAK")
+            platform.console.log("BREAK")
             break
         }
     }

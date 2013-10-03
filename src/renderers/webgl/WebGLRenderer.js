@@ -3,6 +3,7 @@
  */
 'use strict';
 
+var platform = require('../../platform');
 var globals = require('../../core/globals');
 var shaders = require('./shaders');
 
@@ -35,7 +36,7 @@ function WebGLRenderer(width, height, view, transparent, antialias)
     this.width = width || 800;
     this.height = height || 600;
 
-    this.view = view || document.createElement( 'canvas' );
+    this.view = view || platform.createCanvas();
     this.view.width = this.width;
     this.view.height = this.height;
 

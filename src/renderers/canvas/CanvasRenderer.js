@@ -3,6 +3,7 @@
  */
 'use strict';
 
+var platform = require('../../platform');
 var globals = require('../../core/globals');
 
 var canvasGraphics = require('./graphics');
@@ -55,7 +56,7 @@ function CanvasRenderer(width, height, view, transparent)
      * @property view
      * @type Canvas
      */
-    this.view = view || document.createElement( 'canvas' );
+    this.view = view || platform.createCanvas();
 
     /**
      * The canvas context that the everything is drawn to

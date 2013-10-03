@@ -3,6 +3,7 @@
  */
 'use strict';
 
+var platform = require('../platform');
 var globals = require('../core/globals');
 var Point = require('../geom/Point');
 var Sprite = require('../display/Sprite');
@@ -26,7 +27,7 @@ var Texture = require('../textures/Texture');
  */
 function Text(text, style)
 {
-    this.canvas = document.createElement("canvas");
+    this.canvas = platform.createCanvas();
     this.context = this.canvas.getContext("2d");
     Sprite.call(this, Texture.fromCanvas(this.canvas));
 
@@ -204,9 +205,9 @@ proto.determineFontHeight = function determineFontHeight(fontStyle)
 
     if(!result)
     {
-        var body = document.getElementsByTagName("body")[0];
-        var dummy = document.createElement("div");
-        var dummyText = document.createTextNode("M");
+        var body = platform.document.getElementsByTagName("body")[0];
+        var dummy = platform.document.createElement("div");
+        var dummyText = platform.document.createTextNode("M");
         dummy.appendChild(dummyText);
         dummy.setAttribute("style", fontStyle + ';position:absolute;top:0;left:0');
         body.appendChild(dummy);

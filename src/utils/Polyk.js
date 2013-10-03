@@ -32,6 +32,8 @@
 */
 'use strict';
 
+var platform = require('../platform');
+
 /**
  * Checks if a point is within a triangle
  *
@@ -133,7 +135,7 @@ exports.triangulate = function(p)
             }
             else
             {
-                console.log("PIXI Warning: shape too complex to fill")
+                platform.console.warn("PIXI Warning: shape too complex to fill")
                 return [];
             }
         }

@@ -6,6 +6,7 @@
 var globals = require('./core/globals');
 var Point = require('./geom/Point');
 var Sprite = require('./display/Sprite');
+var platform = require('./platform');
 
 /**
  * Holds all information related to an Interaction event
@@ -185,12 +186,12 @@ proto.collectInteractiveSprite = function collectInteractiveSprite(displayObject
 proto.setTarget = function setTarget(target)
 {
     if (!target) {
-        if (this.target !== null) window.removeEventListener('mouseup', this, true);
+        if (this.target !== null) platform.window.removeEventListener('mouseup', this, true);
     } else if (this.interactionDOMElement === null) {
         this.setTargetDomElement( target.view );
     }
 
-    window.addEventListener('mouseup', this, true);
+    platform.window.addEventListener('mouseup', this, true);
     this.target = target;
 };
 
@@ -219,8 +220,8 @@ proto.setTargetDomElement = function setTargetDomElement(domElement)
         this.interactionDOMElement.removeEventListener('touchmove', this, true);
     }
 
-
-    if (window.navigator.msPointerEnabled) {
+    var navigator = platform.navigator;
+    if (navigator && navigator.msPointerEnabled) {
         // time to remove some of that zoom in ja..
         domElement.style['-ms-content-zooming'] = 'none';
         domElement.style['-ms-touch-action'] = 'none';
@@ -338,7 +339,7 @@ proto.update = function update()
  */
 proto.onMouseMove = function onMouseMove(event)
 {
-    this.mouse.originalEvent = event || window.event; //IE uses window.event
+    this.mouse.originalEvent = event;
     // TODO optimize by not check EVERY TIME! maybe half as often? //
     var rect = this.interactionDOMElement.getBoundingClientRect();
 
@@ -364,7 +365,7 @@ proto.onMouseMove = function onMouseMove(event)
  */
 proto.onMouseDown = function onMouseDown(event)
 {
-    this.mouse.originalEvent = event || window.event; //IE uses window.event
+    this.mouse.originalEvent = event;
 
     // loop through inteaction tree...
     // hit test each item! ->
@@ -426,7 +427,7 @@ proto.onMouseOut = function onMouseOut(event)
  */
 proto.onMouseUp = function onMouseUp(event)
 {
-    this.mouse.originalEvent = event || window.event; //IE uses window.event
+    this.mouse.originalEvent = event;
 
     var up = false;
 
@@ -553,7 +554,7 @@ proto.onTouchMove = function onTouchMove(event)
     {
         touchEvent = changedTouches[i];
         touchData = this.touchs[touchEvent.identifier];
-        touchData.originalEvent =  event || window.event;
+        touchData.originalEvent = event;
 
         // update the touch position
         touchData.global.x = (touchEvent.clientX - rect.left) * (this.target.width / rect.width);
@@ -586,7 +587,7 @@ proto.onTouchStart = function onTouchStart(event)
         var touchData = this.pool.pop();
         if (!touchData) touchData = new InteractionData();
 
-        touchData.originalEvent =  event || window.event;
+        touchData.originalEvent = event;
 
         this.touchs[touchEvent.identifier] = touchData;
         touchData.global.x = (touchEvent.clientX - rect.left) * (this.target.width / rect.width);
@@ -623,7 +624,7 @@ proto.onTouchStart = function onTouchStart(event)
  */
 proto.onTouchEnd = function onTouchEnd(event)
 {
-    //this.mouse.originalEvent = event || window.event; //IE uses window.event
+    //this.mouse.originalEvent = event;
     var rect = this.interactionDOMElement.getBoundingClientRect(),
         changedTouches = event.changedTouches;
 
@@ -644,7 +645,7 @@ proto.onTouchEnd = function onTouchEnd(event)
             if(itemTouchData == touchData)
             {
                 // so this one WAS down...
-                touchData.originalEvent =  event || window.event;
+                touchData.originalEvent = event;
                 // hitTest??
 
                 if(item.touchend || item.tap)

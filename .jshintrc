@@ -14,15 +14,11 @@
     "dojo"          : false,
 
     "predef"     : [
-        "console",
         "require",
         "exports",
         "module",
-        "window",
-        "document",
         "Uint16Array",
-        "Float32Array",
-        "XMLHttpRequest"
+        "Float32Array"
     ],
 
     "debug"         : false,

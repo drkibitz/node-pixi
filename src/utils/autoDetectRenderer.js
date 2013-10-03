@@ -3,6 +3,7 @@
  */
 'use strict';
 
+var platform = require('../platform');
 var CanvasRenderer = require('../renderers/canvas/CanvasRenderer');
 var WebGLRenderer = require('../renderers/webgl/WebGLRenderer');
 
@@ -27,7 +28,14 @@ module.exports = function autoDetectRenderer(width, height, view, transparent, a
     if(!height)height = 600;
 
     // BORROWED from Mr Doob (mrdoob.com)
-    var webgl = ( function () { try { return !! window.WebGLRenderingContext && !! document.createElement( 'canvas' ).getContext( 'experimental-webgl' ); } catch( e ) { return false; } } )();
+    var webgl = (function () {
+        try {
+            var canvas = platform.createCanvas();
+            return !! platform.window.WebGLRenderingContext && (canvas.getContext('webgl') || canvas.getContext('experimental-webgl'));
+        } catch( e ) {
+            return false;
+        }
+    }());
 
     //console.log(webgl);
     if( webgl )
