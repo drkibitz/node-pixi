@@ -36,7 +36,7 @@
 
 <p>This is a fork of <a href="https://github.com/GoodBoyDigital/pixi.js">Pixi.JS</a> mainly for use with <a href="http://browserify.org/">browserify</a>, but has also went in a slightly different direction in terms of programming style.</p>
 
-<p>As of version 0.0.1, this is the first iteration and matches the public Pixi.JS API, but now modular with browserify. In later versions, the public API and architecture are subject to change and may no longer match Pixi.JS.</p>
+<p>As of the currest version, node-pixi matches the public Pixi.JS API, but now modular with browserify. In later versions, the public API and architecture are subject to change and may no longer match Pixi.JS. If/when such split occurs the project's versioning and branching will be updated occordingly.</p>
 
 <p><em>Basically, I am open to MAJOR refactors if they are appropriate, and it might even be completely rewritten in TypeScript in the future (not there yet). Also in the future, the goals may differ from Pixi.JS. I may streamline things and standardize only on WebGL, and maybe sooner rather than later (Saying goodbye to context 2d).</em></p>
 
@@ -120,15 +120,15 @@
 <h3>
 <a name="alternative" class="anchor" href="#alternative"><span class="octicon octicon-link"></span></a>Alternative</h3>
 
-<p>You can completely bypass requiring the main <code>pixi</code> module, and go directly for the submodules. This is more verbose than it should be right now, but will get better in the future. Doing this makes sure you only require what you need when you need it.</p>
+<p>You can completely bypass requiring the main <code>pixi</code> module, and go directly for the submodules. Doing this makes sure you only require what you need when you need it.</p>
 
 <p>Example main.js:</p>
 
 <div class="highlight highlight-javascript"><pre><span class="c1">// Require modules</span>
-<span class="kd">var</span> <span class="nx">Sprite</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">'pixi/src/pixi/display/Sprite'</span><span class="p">);</span>
-<span class="kd">var</span> <span class="nx">Stage</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">'pixi/src/pixi/display/Stage'</span><span class="p">);</span>
-<span class="kd">var</span> <span class="nx">Texture</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">'pixi/src/pixi/textures/Texture'</span><span class="p">);</span>
-<span class="kd">var</span> <span class="nx">WebGLRenderer</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">'pixi/src/pixi/renderers/webgl/WebGLRenderer'</span><span class="p">);</span>
+<span class="kd">var</span> <span class="nx">Sprite</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">'pixi/display/Sprite'</span><span class="p">);</span>
+<span class="kd">var</span> <span class="nx">Stage</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">'pixi/display/Stage'</span><span class="p">);</span>
+<span class="kd">var</span> <span class="nx">Texture</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">'pixi/textures/Texture'</span><span class="p">);</span>
+<span class="kd">var</span> <span class="nx">WebGLRenderer</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">'pixi/renderers/webgl/WebGLRenderer'</span><span class="p">);</span>
 
 <span class="kd">var</span> <span class="nx">renderer</span> <span class="o">=</span> <span class="nx">WebGLRenderer</span><span class="p">(</span><span class="mi">800</span><span class="p">,</span> <span class="mi">600</span><span class="p">);</span>
 <span class="nb">document</span><span class="p">.</span><span class="nx">body</span><span class="p">.</span><span class="nx">appendChild</span><span class="p">(</span><span class="nx">renderer</span><span class="p">.</span><span class="nx">view</span><span class="p">);</span>
@@ -150,24 +150,29 @@
 <pre lang="shell"><code>git clone https://github.com/drkibitz/node-pixi.git
 </code></pre>
 
-<p>Then, within your cloned repository, install the node-pixi's devDependencies using NPM:</p>
+<p>It's important to clone the source, and not assume that the source is the same is what is published to NPM. The package on NPM is and should be considered a distributed release only, and is not compatible with the build process outlined here. To avoid any confusion about this, the published package.json has NO <code>devDependencies</code>, while the <code>devDependencies</code> of the source package.json remain.</p>
 
-<pre lang="shell"><code>npm install
+<p><a href="https://david-dm.org/drkibitz/node-pixi#info=devDependencies"><img src="https://david-dm.org/drkibitz/node-pixi/dev-status.png" alt="devDependency Status"></a></p>
+
+<p>The source repository is a valid NPM package with the same name of the distributed NPM package. Meaning it can also be installed with NPM, and directly from Github. There are a few ways to define a URL to do this between NPM and Github, just read <a href="https://npmjs.org/doc/faq.html">npm-faq</a>. I would recommend the following example, which runs very fast. I tend to prefer installing from Github tarballs rather than the Git protocol to avoiding transferring the history. This is a <em>significantly faster</em> installation:</p>
+
+<pre lang="shell"><code>npm install https://github.com/drkibitz/node-pixi/archive/master.tar.gz
 </code></pre>
 
-<p>Then build with Grunt:</p>
+<p>Now with your repository cloned, install the previously mentioned <code>devDependencies</code> using NPM:</p>
+
+<pre lang="shell"><code>cd path/to/clone/
+npm install
+</code></pre>
+
+<p>If the install was successful, you should now be able to build node-pixi with Grunt. Within your clone, run the default Grunt task:</p>
 
 <pre><code>grunt
 </code></pre>
 
-<p>The default task will lint the source, browserify the source to <code>bin/pixi.js</code>, lint the bundle, run tests, and finally minify the bundle at <code>bin/pixi.min.js</code>. It also copies the minified bundle to the the example directories which are a part of the <strong>gh-pages</strong> branch.</p>
+<p>The default task is a slightly extended version of the continious integration task (for Travis CI). In addition to building and testing both debug and release bundles, it creates project analysis reports using <a href="https://github.com/es-analysis/plato">plato</a>, and then copies the release bundle to the example directories meant to be committed to the <strong>gh-pages</strong> branch.</p>
 
-<p>You should run a dev server to view the examples in the <strong>gh-pages</strong> branch, one is also provided as a task:</p>
-
-<pre><code>grunt connect
-</code></pre>
-
-<p>Please see take a look at this project's <code>Gruntfile.js</code> for more info.</p>
+<p>Please see take a look at this project's <code>Gruntfile.js</code> for more information on tasks, and task configuration.</p>
 
 <h2>
 <a name="contribute" class="anchor" href="#contribute"><span class="octicon octicon-link"></span></a>Contribute</h2>
