@@ -74,7 +74,7 @@ function CanvasRenderer(width, height, view, transparent)
     this.count = 0;
 }
 
-var proto = CanvasRenderer.constructor;
+var proto = CanvasRenderer.prototype;
 
 /**
  * Renders the stage to its canvas view
