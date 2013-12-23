@@ -3,7 +3,6 @@
  */
 'use strict';
 
-var platform = require('./platform');
 var globals  = require('./core/globals');
 var shaders  = require('./renderers/webgl/shaders');
 var matrix   = require('./geom/matrix');
@@ -86,27 +85,7 @@ pixi.deactivatePrimitiveShader = shaders.deactivatePrimitiveShader;
 pixi.activateStripShader       = shaders.activateStripShader;
 pixi.deactivateStripShader     = shaders.deactivateStripShader;
 
-/*
- * DEBUGGING ONLY
- */
-pixi.runList = function(item)
-{
-    platform.console.log('>>>>>>>>>');
-    platform.console.log('_');
-    var safe = 0;
-    var tmp = item.first;
-    platform.console.log(tmp);
-
-    while(tmp._iNext)
-    {
-        safe++;
-        tmp = tmp._iNext;
-        platform.console.log(tmp);
-
-        if(safe > 100)
-        {
-            platform.console.log('BREAK');
-            break;
-        }
-    }
-};
+// DEBUGGING ONLY
+// TODO: preprocess macros
+var debug  = require('./utils/debug');
+pixi.runList = debug.runList;
