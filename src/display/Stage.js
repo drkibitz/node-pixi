@@ -85,7 +85,7 @@ var proto = Stage.prototype = Object.create(DisplayObjectContainer.prototype, {
  */
 proto.setInteractionDelegate = function setInteractionDelegate(domElement)
 {
-	this.interactionManager.setTargetDomElement( domElement );
+    this.interactionManager.setTargetDomElement( domElement );
 };
 
 /*
@@ -127,8 +127,8 @@ proto.setBackgroundColor = function setBackgroundColor(backgroundColor)
     this.backgroundColor = backgroundColor || 0x000000;
     this.backgroundColorSplit = hex2rgb(this.backgroundColor);
     var hex = this.backgroundColor.toString(16);
-    hex = "000000".substr(0, 6 - hex.length) + hex;
-    this.backgroundColorString = "#" + hex;
+    hex = '000000'.substr(0, 6 - hex.length) + hex;
+    this.backgroundColorString = '#' + hex;
 };
 
 /**

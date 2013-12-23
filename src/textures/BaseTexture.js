@@ -39,6 +39,14 @@ function BaseTexture(source)
     this.height = 100;
 
     /**
+     * The scale mode to apply when scaling this texture
+     * @property scaleMode
+     * @type PIXI.BaseTexture.SCALE_MODE
+     * @default PIXI.BaseTexture.SCALE_MODE.LINEAR
+     */
+    this.scaleMode = scaleMode || BaseTexture.SCALE_MODE.DEFAULT;
+
+    /**
      * [read-only] Describes if the base texture has loaded or not
      *
      * @property hasLoaded
@@ -71,7 +79,7 @@ function BaseTexture(source)
         {
 
             var scope = this;
-            this.source.onload = function(){
+            this.source.onload = function() {
 
                 scope.hasLoaded = true;
                 scope.width = scope.source.width;
@@ -80,8 +88,8 @@ function BaseTexture(source)
                 // add it to somewhere...
                 globals.texturesToUpdate.push(scope);
                 scope.dispatchEvent( { type: 'loaded', content: scope } );
-            }
-            //  this.image.src = imageUrl;
+            };
+            //this.image.src = imageUrl;
         }
     }
     else
@@ -93,6 +101,7 @@ function BaseTexture(source)
         globals.texturesToUpdate.push(this);
     }
 
+    this.imageUrl = null;
     this._powerOf2 = false;
 }
 
@@ -107,10 +116,25 @@ proto.destroy = function destroy()
 {
     if(this.source.src)
     {
+        if (this.imageUrl in baseTextureCache)
+            delete baseTextureCache[this.imageUrl];
+        this.imageUrl = null;
         this.source.src = null;
     }
     this.source = null;
     globals.texturesToDestroy.push(this);
+};
+
+/**
+ *
+ *
+ * @method destroy
+ */
+proto.updateSourceImage = function updateSourceImage(newSrc)
+{
+    this.hasLoaded = false;
+    this.source.src = null;
+    this.source.src = newSrc;
 };
 
 /**
@@ -122,7 +146,7 @@ proto.destroy = function destroy()
  * @param imageUrl {String} The image url of the texture
  * @return BaseTexture
  */
-BaseTexture.fromImage = function fromImage(imageUrl, crossorigin)
+BaseTexture.fromImage = function fromImage(imageUrl, crossorigin, scaleMode)
 {
     var baseTexture = baseTextureCache[imageUrl];
     if(!baseTexture)
@@ -134,10 +158,17 @@ BaseTexture.fromImage = function fromImage(imageUrl, crossorigin)
         }
         image.src = imageUrl;
         baseTexture = new BaseTexture(image);
+        baseTexture.imageUrl = imageUrl;
         baseTextureCache[imageUrl] = baseTexture;
     }
 
     return baseTexture;
+};
+
+BaseTexture.SCALE_MODE = {
+    DEFAULT: 0, //default to LINEAR
+    LINEAR: 0,
+    NEAREST: 1
 };
 
 module.exports = BaseTexture;

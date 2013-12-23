@@ -31,18 +31,6 @@ var proto = DisplayObjectContainer.prototype = Object.create(DisplayObject.proto
     constructor: {value: DisplayObjectContainer}
 });
 
-//TODO make visible a getter setter
-/*
-Object.defineProperty(proto, 'visible', {
-    get: function() {
-        return this._visible;
-    },
-    set: function(value) {
-        this._visible = value;
-
-    }
-});*/
-
 /**
  * Adds a child to the container.
  *
@@ -51,11 +39,14 @@ Object.defineProperty(proto, 'visible', {
  */
 proto.addChild = function addChild(child)
 {
-    if (child.parent) {
+    if(child.parent !== undefined)
+    {
+
         //// COULD BE THIS???
         child.parent.removeChild(child);
     //  return;
     }
+
     child.parent = this;
 
     this.children.push(child);
@@ -71,19 +62,19 @@ proto.addChild = function addChild(child)
             tmpChild.stage = this.stage;
             tmpChild = tmpChild._iNext;
         }
-        while(tmpChild)
+        while(tmpChild);
     }
 
     // LINKED LIST //
 
     // modify the list..
-    var childFirst = child.first
+    var childFirst = child.first;
     var childLast = child.last;
     var nextObject;
     var previousObject;
 
     // this could be wrong if there is a filter??
-    if(this.filter)
+    if(this._filters || this._mask)
     {
         previousObject =  this.last._iPrev;
     }
@@ -101,7 +92,7 @@ proto.addChild = function addChild(child)
 
     while(updateLast)
     {
-        if(updateLast.last == prevLast)
+        if(updateLast.last === prevLast)
         {
             updateLast.last = child.last;
         }
@@ -138,9 +129,11 @@ proto.addChildAt = function addChildAt(child, index)
 {
     if(index >= 0 && index <= this.children.length)
     {
-        if (child.parent) {
+        if(child.parent !== undefined)
+        {
             child.parent.removeChild(child);
         }
+
         child.parent = this;
 
         if(this.stage)
@@ -152,7 +145,7 @@ proto.addChildAt = function addChildAt(child, index)
                 tmpChild.stage = this.stage;
                 tmpChild = tmpChild._iNext;
             }
-            while(tmpChild)
+            while(tmpChild);
         }
 
         // modify the list..
@@ -163,19 +156,19 @@ proto.addChildAt = function addChildAt(child, index)
 
         if(index === this.children.length)
         {
-            previousObject = this.last;
+            previousObject =  this.last;
             var updateLast = this;
             var prevLast = this.last;
             while(updateLast)
             {
-                if(updateLast.last == prevLast)
+                if(updateLast.last === prevLast)
                 {
                     updateLast.last = child.last;
                 }
                 updateLast = updateLast.parent;
             }
         }
-        else if(!index)
+        else if(index === 0)
         {
             previousObject = this;
         }
@@ -209,7 +202,7 @@ proto.addChildAt = function addChildAt(child, index)
     }
     else
     {
-        throw new Error(child + " The index "+ index +" supplied is out of bounds " + this.children.length);
+        throw new Error(child + ' The index '+ index +' supplied is out of bounds ' + this.children.length);
     }
 };
 
@@ -223,43 +216,30 @@ proto.addChildAt = function addChildAt(child, index)
  */
 proto.swapChildren = function swapChildren(child, child2)
 {
-    /*
-     * this funtion needs to be recoded..
-     * can be done a lot faster..
-     */
-    return;
+    if(child === child2) {
+        return;
+    }
 
-    // need to fix this function :/
-    /*
-    // TODO I already know this??
-    var index = this.children.indexOf( child );
-    var index2 = this.children.indexOf( child2 );
+    var index1 = this.children.indexOf(child);
+    var index2 = this.children.indexOf(child2);
 
-    if ( index !== -1 && index2 !== -1 )
+    if(index1 < 0 || index2 < 0) {
+        throw new Error('swapChildren: Both the supplied DisplayObjects must be a child of the caller.');
+    }
+
+    this.removeChild(child);
+    this.removeChild(child2);
+
+    if(index1 < index2)
     {
-        // cool
-
-        /*
-        if(this.stage)
-        {
-            // this is to satisfy the webGL batching..
-            // TODO sure there is a nicer way to achieve this!
-            this.stage.__removeChild(child);
-            this.stage.__removeChild(child2);
-
-            this.stage.__addChild(child);
-            this.stage.__addChild(child2);
-        }
-
-        // swap the positions..
-        this.children[index] = child2;
-        this.children[index2] = child;
-
+        this.addChildAt(child2, index1);
+        this.addChildAt(child, index2);
     }
     else
     {
-        throw new Error(child + " Both the supplied DisplayObjects must be a child of the caller " + this);
-    }*/
+        this.addChildAt(child, index2);
+        this.addChildAt(child2, index1);
+    }
 };
 
 /**
@@ -276,7 +256,7 @@ proto.getChildAt = function getChildAt(index)
     }
     else
     {
-        throw new RangeError("The supplied index is out of bounds");
+        throw new Error('Both the supplied DisplayObjects must be a child of the caller ' + this);
     }
 };
 
@@ -302,16 +282,18 @@ proto.removeChild = function removeChild(child)
         if(nextObject)nextObject._iPrev = previousObject;
         previousObject._iNext = nextObject;
 
-        if(this.last == childLast)
+        if(this.last === childLast)
         {
-            var tempLast =  childFirst._iPrev;
+            var tempLast = childFirst._iPrev;
             // need to make sure the parents last is updated too
             var updateLast = this;
-            while(updateLast.last == childLast.last)
+
+            while(updateLast.last === childLast)
             {
                 updateLast.last = tempLast;
                 updateLast = updateLast.parent;
                 if(!updateLast)break;
+
             }
         }
 
@@ -328,7 +310,7 @@ proto.removeChild = function removeChild(child)
                 tmpChild.stage = null;
                 tmpChild = tmpChild._iNext;
             }
-            while(tmpChild)
+            while(tmpChild);
         }
 
         // webGL trim
@@ -342,7 +324,7 @@ proto.removeChild = function removeChild(child)
     }
     else
     {
-        throw new Error(child + " The supplied DisplayObject must be a child of the caller " + this);
+        throw new Error(child + ' The supplied DisplayObject must be a child of the caller ' + this);
     }
 };
 

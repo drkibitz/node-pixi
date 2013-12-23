@@ -10,12 +10,12 @@ var Texture = require('../textures/Texture');
 
 /**
  * The sprite sheet loader is used to load in JSON sprite sheet data
- * To generate the data you can use http://www.codeandweb.com/texturepacker and publish the "JSON" format
+ * To generate the data you can use http://www.codeandweb.com/texturepacker and publish the 'JSON' format
  * There is a free version so thats nice, although the paid version is great value for money.
- * It is highly recommended to use Sprite sheets (also know as texture atlas") as it means sprite"s can be batched and drawn together for highly increased rendering speed.
+ * It is highly recommended to use Sprite sheets (also know as texture atlas') as it means sprite's can be batched and drawn together for highly increased rendering speed.
  * Once the data has been loaded the frames are stored in the texture cache and can be accessed though Texture.fromFrameId() and Sprite.fromFromeId()
  * This loader will also load the image file that the Spritesheet points to as well as the data.
- * When loaded this class will dispatch a "loaded" event
+ * When loaded this class will dispatch a 'loaded' event
  *
  * @class SpriteSheetLoader
  * @uses EventTarget
@@ -27,7 +27,7 @@ function SpriteSheetLoader(url, crossorigin) {
     /*
      * i use texture packer to load the assets..
      * http://www.codeandweb.com/texturepacker
-     * make sure to set the format as "JSON"
+     * make sure to set the format as 'JSON'
      */
     EventTarget.call(this);
 
@@ -54,7 +54,7 @@ function SpriteSheetLoader(url, crossorigin) {
      * @type String
      * @readOnly
      */
-    this.baseUrl = url.replace(/[^\/]*$/, "");
+    this.baseUrl = url.replace(/[^\/]*$/, '');
 
     /**
      * The texture being loaded
@@ -83,7 +83,7 @@ var proto = SpriteSheetLoader.prototype;
 proto.load = function () {
     var scope = this;
     var jsonLoader = new JsonLoader(this.url, this.crossorigin);
-    jsonLoader.addEventListener("loaded", function (event) {
+    jsonLoader.addEventListener('loaded', function (event) {
         scope.json = event.content.json;
         scope.onJSONLoaded();
     });
@@ -104,7 +104,7 @@ proto.onJSONLoaded = function onJSONLoaded()
     var frameData = this.json.frames;
 
     this.texture = image.texture.baseTexture;
-    image.addEventListener("loaded", function (event) {
+    image.addEventListener('loaded', function () {
         scope.onLoaded();
     });
 
@@ -128,6 +128,7 @@ proto.onJSONLoaded = function onJSONLoaded()
 
     image.load();
 };
+
 /**
  * Invoke when all files are loaded (json and texture)
  *
@@ -137,7 +138,7 @@ proto.onJSONLoaded = function onJSONLoaded()
 proto.onLoaded = function onLoaded()
 {
     this.dispatchEvent({
-        type: "loaded",
+        type: 'loaded',
         content: this
     });
 };

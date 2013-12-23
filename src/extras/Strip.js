@@ -49,7 +49,7 @@ function Strip(texture, width, height)
     this.verticies = new Float32Array()
     this.colors = new Float32Array()
     this.indices = new Uint16Array()
-*/
+    */
     this.width = width;
     this.height = height;
 

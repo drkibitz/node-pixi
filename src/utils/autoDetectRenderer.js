@@ -37,6 +37,12 @@ module.exports = function autoDetectRenderer(width, height, view, transparent, a
         }
     }());
 
+    if(webgl)
+    {
+        var ie =  (navigator.userAgent.toLowerCase().indexOf('trident') !== -1);
+        webgl = !ie;
+    }
+
     //console.log(webgl);
     if( webgl )
     {

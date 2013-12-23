@@ -104,7 +104,7 @@ proto.initWebGL = function initWebGL()
     gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.baseTexture._glTexture, 0);
 
     // create a projection matrix..
-    this.projection = new Point(this.width/2 , this.height/2);
+    this.projection = new Point(this.width/2 , -this.height/2);
 
     // set the correct render function..
     this.render = this.renderWebGL;
@@ -118,8 +118,8 @@ proto.resize = function resize(width, height)
 
     if(globals.gl)
     {
-        this.projection.x = this.width/2
-        this.projection.y = this.height/2;
+        this.projection.x = this.width / 2;
+        this.projection.y = -this.height / 2;
 
         var gl = globals.gl;
         gl.bindTexture(gl.TEXTURE_2D, this.baseTexture._glTexture);
@@ -128,7 +128,7 @@ proto.resize = function resize(width, height)
     else
     {
 
-        this.frame.width = this.width
+        this.frame.width = this.width;
         this.frame.height = this.height;
         this.renderer.resize(this.width, this.height);
     }
@@ -183,8 +183,7 @@ proto.renderWebGL = function renderWebGL(displayObject, position, clear)
     displayObject.worldTransform = mat3.create();//sthis.identityMatrix;
     // modify to flip...
     displayObject.worldTransform[4] = -1;
-    displayObject.worldTransform[5] = this.projection.y * 2;
-
+    displayObject.worldTransform[5] = this.projection.y * -2;
 
     if(position)
     {
@@ -204,24 +203,25 @@ proto.renderWebGL = function renderWebGL(displayObject, position, clear)
 
     if(renderGroup)
     {
-        if(displayObject == renderGroup.root)
+        if(displayObject === renderGroup.root)
         {
-            renderGroup.render(this.projection);
+            renderGroup.render(this.projection, this.glFramebuffer);
         }
         else
         {
-            renderGroup.renderSpecific(displayObject, this.projection);
+            renderGroup.renderSpecific(displayObject, this.projection, this.glFramebuffer);
         }
     }
     else
     {
         if(!this.renderGroup)this.renderGroup = new WebGLRenderGroup(gl);
         this.renderGroup.setRenderable(displayObject);
-        this.renderGroup.render(this.projection);
+        this.renderGroup.render(this.projection, this.glFramebuffer);
     }
 
     displayObject.worldTransform = originalWorldTransform;
 };
+
 
 /**
  * This function will draw the display object to the texture.
@@ -244,12 +244,12 @@ proto.renderCanvas = function renderCanvas(displayObject, position, clear)
     }
 
 
-    for(var i=0,j=children.length; i<j; i++)
+    for(var i = 0, j = children.length; i < j; i++)
     {
         children[i].updateTransform();
     }
 
-    if(clear)this.renderer.context.clearRect(0,0, this.width, this.height);
+    if(clear) this.renderer.context.clearRect(0,0, this.width, this.height);
 
     this.renderer.renderDisplayObject(displayObject);
 

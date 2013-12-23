@@ -3,9 +3,8 @@
  */
 'use strict';
 
-function FilterBlock(mask)
+function FilterBlock()
 {
-    this.graphics = mask;
     this.visible = true;
     this.renderable = true;
 }

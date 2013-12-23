@@ -63,7 +63,21 @@ function CanvasRenderer(width, height, view, transparent)
      * @property context
      * @type Canvas 2d Context
      */
-    this.context = this.view.getContext("2d");
+    this.context = this.view.getContext( '2d' );
+
+    //some filter variables
+    this.smoothProperty = null;
+
+    if('imageSmoothingEnabled' in this.context)
+        this.smoothProperty = 'imageSmoothingEnabled';
+    else if('webkitImageSmoothingEnabled' in this.context)
+        this.smoothProperty = 'webkitImageSmoothingEnabled';
+    else if('mozImageSmoothingEnabled' in this.context)
+        this.smoothProperty = 'mozImageSmoothingEnabled';
+    else if('oImageSmoothingEnabled' in this.context)
+        this.smoothProperty = 'oImageSmoothingEnabled';
+
+    this.scaleMode = null;
 
     this.refresh = true;
     // hack to enable some hardware acceleration!
@@ -84,7 +98,6 @@ var proto = CanvasRenderer.prototype;
  */
 proto.render = function render(stage)
 {
-
     //stage.__childrenAdded = [];
     //stage.__childrenRemoved = [];
 
@@ -96,10 +109,11 @@ proto.render = function render(stage)
     stage.updateTransform();
 
     // update the background color
-    if(this.view.style.backgroundColor!=stage.backgroundColorString && !this.transparent)this.view.style.backgroundColor = stage.backgroundColorString;
+    if(this.view.style.backgroundColor !== stage.backgroundColorString && !this.transparent)
+        this.view.style.backgroundColor = stage.backgroundColorString;
 
     this.context.setTransform(1,0,0,1,0,0);
-    this.context.clearRect(0, 0, this.width, this.height)
+    this.context.clearRect(0, 0, this.width, this.height);
     this.renderDisplayObject(stage);
     //as
 
@@ -115,7 +129,7 @@ proto.render = function render(stage)
     }
 
     // remove frame updates..
-    if (Texture.frameUpdates.length > 0)
+    if(Texture.frameUpdates.length > 0)
     {
         Texture.frameUpdates = [];
     }
@@ -177,11 +191,18 @@ proto.renderDisplayObject = function renderDisplayObject(displayObject)
 
             var frame = displayObject.texture.frame;
 
-            if(frame && frame.width && frame.height)
+            //ignore null sources
+            if(frame && frame.width && frame.height && displayObject.texture.baseTexture.source)
             {
                 context.globalAlpha = displayObject.worldAlpha;
 
                 context.setTransform(transform[0], transform[3], transform[1], transform[4], transform[2], transform[5]);
+
+                //if smoothingEnabled is supported and we need to change the smoothing property for this texture
+                if(this.smoothProperty && this.scaleMode !== displayObject.texture.baseTexture.scaleMode) {
+                    this.scaleMode = displayObject.texture.baseTexture.scaleMode;
+                    context[this.smoothProperty] = (this.scaleMode === BaseTexture.SCALE_MODE.LINEAR);
+                }
 
                 context.drawImage(displayObject.texture.baseTexture.source,
                                    frame.x,
@@ -196,54 +217,58 @@ proto.renderDisplayObject = function renderDisplayObject(displayObject)
         }
         else if(displayObject instanceof Strip)
         {
-            context.setTransform(transform[0], transform[3], transform[1], transform[4], transform[2], transform[5])
+            context.setTransform(transform[0], transform[3], transform[1], transform[4], transform[2], transform[5]);
             this.renderStrip(displayObject);
         }
         else if(displayObject instanceof TilingSprite)
         {
-            context.setTransform(transform[0], transform[3], transform[1], transform[4], transform[2], transform[5])
+            context.setTransform(transform[0], transform[3], transform[1], transform[4], transform[2], transform[5]);
             this.renderTilingSprite(displayObject);
         }
         else if(displayObject instanceof CustomRenderable)
         {
+            context.setTransform(transform[0], transform[3], transform[1], transform[4], transform[2], transform[5]);
             displayObject.renderCanvas(this);
         }
         else if(displayObject instanceof Graphics)
         {
-            context.setTransform(transform[0], transform[3], transform[1], transform[4], transform[2], transform[5])
+            context.setTransform(transform[0], transform[3], transform[1], transform[4], transform[2], transform[5]);
             canvasGraphics.renderGraphics(displayObject, context);
         }
         else if(displayObject instanceof FilterBlock)
         {
-            if(displayObject.open)
+            if(displayObject.data instanceof Graphics)
             {
-                context.save();
+                var mask = displayObject.data;
 
-                var cacheAlpha = displayObject.mask.alpha;
-                var maskTransform = displayObject.mask.worldTransform;
+                if(displayObject.open)
+                {
+                    context.save();
 
-                context.setTransform(maskTransform[0], maskTransform[3], maskTransform[1], maskTransform[4], maskTransform[2], maskTransform[5])
+                    var cacheAlpha = mask.alpha;
+                    var maskTransform = mask.worldTransform;
 
-                displayObject.mask.worldAlpha = 0.5;
+                    context.setTransform(maskTransform[0], maskTransform[3], maskTransform[1], maskTransform[4], maskTransform[2], maskTransform[5]);
 
-                context.worldAlpha = 0;
+                    mask.worldAlpha = 0.5;
 
-                canvasGraphics.renderGraphicsMask(displayObject.mask, context);
-                context.clip();
+                    context.worldAlpha = 0;
 
-                displayObject.mask.worldAlpha = cacheAlpha;
-            }
-            else
-            {
-                context.restore();
+                    canvasGraphics.renderGraphicsMask(mask, context);
+                    context.clip();
+
+                    mask.worldAlpha = cacheAlpha;
+                }
+                else
+                {
+                    context.restore();
+                }
             }
         }
-    //  count++
+        //count++
         displayObject = displayObject._iNext;
-
-
     }
-    while(displayObject != testObject)
+    while(displayObject !== testObject);
 };
 
 /**
@@ -257,7 +282,6 @@ proto.renderStripFlat = function renderStripFlat(strip)
 {
     var context = this.context;
     var verticies = strip.verticies;
-    var uvs = strip.uvs;
 
     var length = verticies.length/2;
     this.count++;
@@ -265,20 +289,18 @@ proto.renderStripFlat = function renderStripFlat(strip)
     context.beginPath();
     for (var i=1; i < length-2; i++)
     {
-
         // draw some triangles!
         var index = i*2;
 
-         var x0 = verticies[index],   x1 = verticies[index+2], x2 = verticies[index+4];
-         var y0 = verticies[index+1], y1 = verticies[index+3], y2 = verticies[index+5];
+        var x0 = verticies[index],   x1 = verticies[index+2], x2 = verticies[index+4];
+        var y0 = verticies[index+1], y1 = verticies[index+3], y2 = verticies[index+5];
 
         context.moveTo(x0, y0);
         context.lineTo(x1, y1);
         context.lineTo(x2, y2);
-
     }
 
-    context.fillStyle = "#FF0000";
+    context.fillStyle = '#FF0000';
     context.fill();
     context.closePath();
 };
@@ -296,7 +318,8 @@ proto.renderTilingSprite = function renderTilingSprite(sprite)
 
     context.globalAlpha = sprite.worldAlpha;
 
-    if(!sprite.__tilePattern) sprite.__tilePattern = context.createPattern(sprite.texture.baseTexture.source, "repeat");
+    if(!sprite.__tilePattern)
+        sprite.__tilePattern = context.createPattern(sprite.texture.baseTexture.source, 'repeat');
 
     context.beginPath();
 
@@ -333,18 +356,17 @@ proto.renderStrip = function renderStrip(strip)
 
     var length = verticies.length/2;
     this.count++;
-    for (var i=1; i < length-2; i++)
-    {
 
+    for (var i = 1; i < length-2; i++)
+    {
         // draw some triangles!
         var index = i*2;
 
-         var x0 = verticies[index],   x1 = verticies[index+2], x2 = verticies[index+4];
-         var y0 = verticies[index+1], y1 = verticies[index+3], y2 = verticies[index+5];
+        var x0 = verticies[index],   x1 = verticies[index+2], x2 = verticies[index+4];
+        var y0 = verticies[index+1], y1 = verticies[index+3], y2 = verticies[index+5];
 
-         var u0 = uvs[index] * strip.texture.width,   u1 = uvs[index+2] * strip.texture.width, u2 = uvs[index+4]* strip.texture.width;
-         var v0 = uvs[index+1]* strip.texture.height, v1 = uvs[index+3] * strip.texture.height, v2 = uvs[index+5]* strip.texture.height;
-
+        var u0 = uvs[index] * strip.texture.width,   u1 = uvs[index+2] * strip.texture.width, u2 = uvs[index+4]* strip.texture.width;
+        var v0 = uvs[index+1]* strip.texture.height, v1 = uvs[index+3] * strip.texture.height, v2 = uvs[index+5]* strip.texture.height;
 
         context.save();
         context.beginPath();
@@ -355,22 +377,18 @@ proto.renderStrip = function renderStrip(strip)
 
         context.clip();
 
-
         // Compute matrix transform
         var delta = u0*v1 + v0*u2 + u1*v2 - v1*u2 - v0*u1 - u0*v2;
-        var delta_a = x0*v1 + v0*x2 + x1*v2 - v1*x2 - v0*x1 - x0*v2;
-        var delta_b = u0*x1 + x0*u2 + u1*x2 - x1*u2 - x0*u1 - u0*x2;
-        var delta_c = u0*v1*x2 + v0*x1*u2 + x0*u1*v2 - x0*v1*u2 - v0*u1*x2 - u0*x1*v2;
-        var delta_d = y0*v1 + v0*y2 + y1*v2 - v1*y2 - v0*y1 - y0*v2;
-        var delta_e = u0*y1 + y0*u2 + u1*y2 - y1*u2 - y0*u1 - u0*y2;
-        var delta_f = u0*v1*y2 + v0*y1*u2 + y0*u1*v2 - y0*v1*u2 - v0*u1*y2 - u0*y1*v2;
+        var deltaA = x0*v1 + v0*x2 + x1*v2 - v1*x2 - v0*x1 - x0*v2;
+        var deltaB = u0*x1 + x0*u2 + u1*x2 - x1*u2 - x0*u1 - u0*x2;
+        var deltaC = u0*v1*x2 + v0*x1*u2 + x0*u1*v2 - x0*v1*u2 - v0*u1*x2 - u0*x1*v2;
+        var deltaD = y0*v1 + v0*y2 + y1*v2 - v1*y2 - v0*y1 - y0*v2;
+        var deltaE = u0*y1 + y0*u2 + u1*y2 - y1*u2 - y0*u1 - u0*y2;
+        var deltaF = u0*v1*y2 + v0*y1*u2 + y0*u1*v2 - y0*v1*u2 - v0*u1*y2 - u0*y1*v2;
 
-
-
-
-        context.transform(delta_a/delta, delta_d/delta,
-                      delta_b/delta, delta_e/delta,
-                      delta_c/delta, delta_f/delta);
+        context.transform(deltaA / delta, deltaD / delta,
+                            deltaB / delta, deltaE / delta,
+                            deltaC / delta, deltaF / delta);
 
         context.drawImage(strip.texture.baseTexture.source, 0, 0);
         context.restore();

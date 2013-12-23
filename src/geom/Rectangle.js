@@ -43,6 +43,7 @@ function Rectangle(x, y, width, height)
      */
     this.height = height || 0;
 }
+
 var proto = Rectangle.prototype;
 
 /**

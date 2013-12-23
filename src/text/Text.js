@@ -10,17 +10,17 @@ var Sprite = require('../display/Sprite');
 var Texture = require('../textures/Texture');
 
 /**
- * A Text Object will create a line(s) of text to split a line you can use "\n"
+ * A Text Object will create a line(s) of text to split a line you can use '\n'
  *
  * @class Text
  * @extends Sprite
  * @constructor
  * @param text {String} The copy that you would like the text to display
  * @param [style] {Object} The style parameters
- * @param [style.font] {String} default "bold 20pt Arial" The style and size of the font
- * @param [style.fill="black"] {Object} A canvas fillstyle that will be used on the text eg "red", "#00FF00"
- * @param [style.align="left"] {String} An alignment of the multiline text ("left", "center" or "right")
- * @param [style.stroke] {String} A canvas fillstyle that will be used on the text stroke eg "blue", "#FCFF00"
+ * @param [style.font] {String} default 'bold 20pt Arial' The style and size of the font
+ * @param [style.fill='black'] {Object} A canvas fillstyle that will be used on the text eg 'red', '#00FF00'
+ * @param [style.align='left'] {String} An alignment of the multiline text ('left', 'center' or 'right')
+ * @param [style.stroke] {String} A canvas fillstyle that will be used on the text stroke eg 'blue', '#FCFF00'
  * @param [style.strokeThickness=0] {Number} A number that represents the thickness of the stroke. Default is 0 (no stroke)
  * @param [style.wordWrap=false] {Boolean} Indicates if word wrap should be used
  * @param [style.wordWrapWidth=100] {Number} The width at which text will wrap
@@ -28,7 +28,7 @@ var Texture = require('../textures/Texture');
 function Text(text, style)
 {
     this.canvas = platform.createCanvas();
-    this.context = this.canvas.getContext("2d");
+    this.context = this.canvas.getContext('2d');
     Sprite.call(this, Texture.fromCanvas(this.canvas));
 
     this.setText(text);
@@ -38,7 +38,6 @@ function Text(text, style)
     this.dirty = false;
 }
 
-// constructor
 var proto = Text.prototype = Object.create(Sprite.prototype, {
     constructor: {value: Text}
 });
@@ -48,10 +47,10 @@ var proto = Text.prototype = Object.create(Sprite.prototype, {
  *
  * @method setStyle
  * @param [style] {Object} The style parameters
- * @param [style.font="bold 20pt Arial"] {String} The style and size of the font
- * @param [style.fill="black"] {Object} A canvas fillstyle that will be used on the text eg "red", "#00FF00"
- * @param [style.align="left"] {String} An alignment of the multiline text ("left", "center" or "right")
- * @param [style.stroke="black"] {String} A canvas fillstyle that will be used on the text stroke eg "blue", "#FCFF00"
+ * @param [style.font='bold 20pt Arial'] {String} The style and size of the font
+ * @param [style.fill='black'] {Object} A canvas fillstyle that will be used on the text eg 'red', '#00FF00'
+ * @param [style.align='left'] {String} An alignment of the multiline text ('left', 'center' or 'right')
+ * @param [style.stroke='black'] {String} A canvas fillstyle that will be used on the text stroke eg 'blue', '#FCFF00'
  * @param [style.strokeThickness=0] {Number} A number that represents the thickness of the stroke. Default is 0 (no stroke)
  * @param [style.wordWrap=false] {Boolean} Indicates if word wrap should be used
  * @param [style.wordWrapWidth=100] {Number} The width at which text will wrap
@@ -59,10 +58,10 @@ var proto = Text.prototype = Object.create(Sprite.prototype, {
 proto.setStyle = function setStyle(style)
 {
     style = style || {};
-    style.font = style.font || "bold 20pt Arial";
-    style.fill = style.fill || "black";
-    style.align = style.align || "left";
-    style.stroke = style.stroke || "black"; //provide a default, see: https://github.com/GoodBoyDigital/pixi.js/issues/136
+    style.font = style.font || 'bold 20pt Arial';
+    style.fill = style.fill || 'black';
+    style.align = style.align || 'left';
+    style.stroke = style.stroke || 'black'; //provide a default, see: https://github.com/GoodBoyDigital/pixi.js/issues/136
     style.strokeThickness = style.strokeThickness || 0;
     style.wordWrap = style.wordWrap || false;
     style.wordWrapWidth = style.wordWrapWidth || 100;
@@ -71,14 +70,14 @@ proto.setStyle = function setStyle(style)
 };
 
 /**
- * Set the copy for the text object. To split a line you can use "\n"
+ * Set the copy for the text object. To split a line you can use '\n'
  *
- * @methos setText
+ * @method setText
  * @param {String} text The copy that you would like the text to display
  */
 proto.setText = function setText(text)
 {
-    this.text = text.toString() || " ";
+    this.text = text.toString() || ' ';
     this.dirty = true;
 };
 
@@ -113,7 +112,7 @@ proto.updateText = function updateText()
     this.canvas.width = maxLineWidth + this.style.strokeThickness;
 
     //calculate text height
-    var lineHeight = this.determineFontHeight("font: " + this.style.font  + ";") + this.style.strokeThickness;
+    var lineHeight = this.determineFontHeight('font: ' + this.style.font  + ';') + this.style.strokeThickness;
     this.canvas.height = lineHeight * lines.length;
 
     //set canvas text styles
@@ -123,18 +122,18 @@ proto.updateText = function updateText()
     this.context.strokeStyle = this.style.stroke;
     this.context.lineWidth = this.style.strokeThickness;
 
-    this.context.textBaseline = "top";
+    this.context.textBaseline = 'top';
 
     //draw lines line by line
     for (i = 0; i < lines.length; i++)
     {
         var linePosition = new Point(this.style.strokeThickness / 2, this.style.strokeThickness / 2 + i * lineHeight);
 
-        if(this.style.align == "right")
+        if(this.style.align === 'right')
         {
             linePosition.x += maxLineWidth - lineWidths[i];
         }
-        else if(this.style.align == "center")
+        else if(this.style.align === 'center')
         {
             linePosition.x += (maxLineWidth - lineWidths[i]) / 2;
         }
@@ -205,11 +204,11 @@ proto.determineFontHeight = function determineFontHeight(fontStyle)
 
     if(!result)
     {
-        var body = platform.document.getElementsByTagName("body")[0];
-        var dummy = platform.document.createElement("div");
-        var dummyText = platform.document.createTextNode("M");
+        var body = platform.document.getElementsByTagName('body')[0];
+        var dummy = platform.document.createElement('div');
+        var dummyText = platform.document.createTextNode('M');
         dummy.appendChild(dummyText);
-        dummy.setAttribute("style", fontStyle + ';position:absolute;top:0;left:0');
+        dummy.setAttribute('style', fontStyle + ';position:absolute;top:0;left:0');
         body.appendChild(dummy);
 
         result = dummy.offsetHeight;
@@ -222,7 +221,8 @@ proto.determineFontHeight = function determineFontHeight(fontStyle)
 };
 
 /**
- * A Text Object will apply wordwrap
+ * Applies newlines to a string to have it optimally fit into the horizontal
+ * bounds set by the Text object's wordWrapWidth property.
  *
  * @method wordWrap
  * @param text {String}
@@ -230,48 +230,37 @@ proto.determineFontHeight = function determineFontHeight(fontStyle)
  */
 proto.wordWrap = function wordWrap(text)
 {
-    // search good wrap position
-    function searchWrapPos(ctx, text, start, end, wrapWidth)
+    // Greedy wrapping algorithm that will wrap words as the line grows longer
+    // than its horizontal bounds.
+    var result = '';
+    var lines = text.split('\n');
+    for (var i = 0; i < lines.length; i++)
     {
-        var p = Math.floor((end-start) / 2) + start;
-        if(p == start) {
-            return 1;
-        }
-
-        if(ctx.measureText(text.substring(0,p)).width <= wrapWidth)
+        var spaceLeft = this.style.wordWrapWidth;
+        var words = lines[i].split(' ');
+        for (var j = 0; j < words.length; j++)
         {
-            if(ctx.measureText(text.substring(0,p+1)).width > wrapWidth)
+            var wordWidth = this.context.measureText(words[j]).width;
+            var wordWidthWithSpace = wordWidth + this.context.measureText(' ').width;
+            if(wordWidthWithSpace > spaceLeft)
             {
-                return p;
+                // Skip printing the newline if it's the first word of the line that is
+                // greater than the word wrap width.
+                if(j > 0)
+                {
+                    result += '\n';
+                }
+                result += words[j] + ' ';
+                spaceLeft = this.style.wordWrapWidth - wordWidth;
             }
             else
             {
-                return searchWrapPos(ctx, text, p, end, wrapWidth);
+                spaceLeft -= wordWidthWithSpace;
+                result += words[j] + ' ';
             }
         }
-        else
-        {
-            return searchWrapPos(ctx, text, start, p, wrapWidth);
-        }
+        result += '\n';
     }
-
-    function lineWrap(ctx, text, wrapWidth)
-    {
-        if(ctx.measureText(text).width <= wrapWidth || text.length < 1)
-        {
-            return text;
-        }
-        var pos = searchWrapPos(ctx, text, 0, text.length, wrapWidth);
-        return text.substring(0, pos) + "\n" + lineWrap(ctx, text.substring(pos), wrapWidth);
-    }
-
-    var result = "";
-    var lines = text.split("\n");
-    for (var i = 0; i < lines.length; i++)
-    {
-        result += lineWrap(this.context, lines[i], this.style.wordWrapWidth) + "\n";
-    }
-
     return result;
 };
 

@@ -14,11 +14,13 @@ var DisplayObject = require('../display/DisplayObject');
  */
 function CustomRenderable()
 {
-	DisplayObject.call(this);
-}
+    DisplayObject.call(this);
+
+    this.renderable = true;
+};
 
 var proto = CustomRenderable.prototype = Object.create(DisplayObject.prototype, {
-	constructor: {value: CustomRenderable}
+    constructor: {value: CustomRenderable}
 });
 
 /**
@@ -47,7 +49,8 @@ proto.initWebGL = function initWebGL(renderer)
  * If this object is being rendered by a WebGLRenderer it will call this callback
  *
  * @method renderWebGL
- * @param renderer {WebGLRenderer} The renderer instance
+ * @param renderGroup {WebGLRenderGroup} The renderer group instance
+ * @param projectionMatrix {Matrix} The object's projection matrix
  */
 proto.renderWebGL = function renderWebGL(renderGroup, projectionMatrix)
 {

@@ -13,6 +13,33 @@ var EventTarget = require('../events/EventTarget');
  */
 var loadersByType = {};
 
+function getDataType(str)
+{
+    var test = 'data:';
+    //starts with 'data:'
+    var start = str.slice(0, test.length).toLowerCase();
+    if (start === test) {
+        var data = str.slice(test.length);
+
+        var sepIdx = data.indexOf(',');
+        if (sepIdx === -1) //malformed data URI scheme
+            return null;
+
+        //e.g. 'image/gif;base64' => 'image/gif'
+        var info = data.slice(0, sepIdx).split(';')[0];
+
+        //We might need to handle some special cases here...
+        //standardize text/plain to 'txt' file extension
+        if (!info || info.toLowerCase() === 'text/plain')
+            return 'txt';
+
+        //User specified mime type, try splitting it by '/'
+        return info.split('/').pop().toLowerCase();
+    }
+
+    return null;
+}
+
 /**
  * A Class that loads a bunch of images / sprite sheet / bitmap font files. Once the
  * assets have been loaded they are added to the Texture cache and can be accessed
@@ -24,9 +51,9 @@ var loadersByType = {};
  * @constructor
  * @uses EventTarget
  * @param {Array<String>} assetURLs an array of image/sprite sheet urls that you would like loaded
- *      supported. Supported image formats include "jpeg", "jpg", "png", "gif". Supported
- *      sprite sheet data formats only include "JSON" at this time. Supported bitmap font
- *      data formats include "xml" and "fnt".
+ *      supported. Supported image formats include 'jpeg', 'jpg', 'png', 'gif'. Supported
+ *      sprite sheet data formats only include 'JSON' at this time. Supported bitmap font
+ *      data formats include 'xml' and 'fnt'.
  * @param crossorigin {Boolean} Whether requests should be treated as crossorigin
  */
 function AssetLoader(assetURLs, crossorigin)
@@ -80,15 +107,20 @@ proto.load = function load()
     for (var i = 0, l = this.assetURLs.length; i < l; i++)
     {
         var fileName = this.assetURLs[i];
-        var fileType = fileName.split(".").pop().toLowerCase();
+        //first see if we have a data URI scheme..
+        var fileType = getDataType(fileName);
+
+        //if not, assume it's a file URI
+        if (!fileType)
+            fileType = fileName.split('?').shift().split('.').pop().toLowerCase();
 
         var Constructor = loadersByType[fileType];
         if(!Constructor)
-            throw new Error(fileType + " is an unsupported file type");
+            throw new Error(fileType + ' is an unsupported file type');
 
         var loader = new Constructor(fileName, this.crossorigin);
 
-        loader.addEventListener("loaded", onLoad);
+        loader.addEventListener('loaded', onLoad);
         loader.load();
     }
 };
@@ -102,12 +134,12 @@ proto.load = function load()
 proto.onAssetLoaded = function onAssetLoaded()
 {
     this.loadCount--;
-    this.dispatchEvent({type: "onProgress", content: this});
+    this.dispatchEvent({type: 'onProgress', content: this});
     if (this.onProgress) this.onProgress();
 
     if (!this.loadCount)
     {
-        this.dispatchEvent({type: "onComplete", content: this});
+        this.dispatchEvent({type: 'onComplete', content: this});
         if(this.onComplete) this.onComplete();
     }
 };

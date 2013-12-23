@@ -97,7 +97,7 @@ Object.defineProperty(proto, 'width', {
         return this.scale.x * this.texture.frame.width;
     },
     set: function(value) {
-        this.scale.x = value / this.texture.frame.width
+        this.scale.x = value / this.texture.frame.width;
         this._width = value;
     }
 });
@@ -113,7 +113,7 @@ Object.defineProperty(proto, 'height', {
         return  this.scale.y * this.texture.frame.height;
     },
     set: function(value) {
-        this.scale.y = value / this.texture.frame.height
+        this.scale.y = value / this.texture.frame.height;
         this._height = value;
     }
 });
@@ -127,7 +127,7 @@ Object.defineProperty(proto, 'height', {
 proto.setTexture = function setTexture(texture)
 {
     // stop current texture;
-    if(this.texture.baseTexture != texture.baseTexture)
+    if(this.texture.baseTexture !== texture.baseTexture)
     {
         this.textureChange = true;
         this.texture = texture;
@@ -165,22 +165,6 @@ proto.onTextureUpdate = function onTextureUpdate(event)
 
 /**
  *
- * Helper function that creates a sprite that will contain a texture based on an image url
- * If the image is not in the texture cache it will be loaded
- *
- * @method fromImage
- * @static
- * @param imageId {String} The image url of the texture
- * @return {Sprite} A new Sprite using a texture from the texture cache matching the image id
- */
-Sprite.fromImage = function fromImage(imageId)
-{
-    var texture = Texture.fromImage(imageId);
-    return new Sprite(texture);
-};
-
-/**
- *
  * Helper function that creates a sprite that will contain a texture from the TextureCache based on the frameId
  * The frame ids are created when a Texture packer file has been loaded
  *
@@ -192,7 +176,23 @@ Sprite.fromImage = function fromImage(imageId)
 Sprite.fromFrame = function fromFrame(frameId)
 {
     var texture = Texture.cache[frameId];
-    if(!texture)throw new Error("The frameId '"+ frameId +"' does not exist in the texture cache" + this);
+    if(!texture) throw new Error('The frameId "' + frameId + '" does not exist in the texture cache' + this);
+    return new Sprite(texture);
+};
+
+/**
+ *
+ * Helper function that creates a sprite that will contain a texture based on an image url
+ * If the image is not in the texture cache it will be loaded
+ *
+ * @method fromImage
+ * @static
+ * @param imageId {String} The image url of the texture
+ * @return {Sprite} A new Sprite using a texture from the texture cache matching the image id
+ */
+Sprite.fromImage = function fromImage(imageId)
+{
+    var texture = Texture.fromImage(imageId);
     return new Sprite(texture);
 };
 

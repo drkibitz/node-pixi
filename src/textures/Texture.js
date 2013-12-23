@@ -67,7 +67,7 @@ function Texture(baseTexture, frame)
     else
     {
         var scope = this;
-        baseTexture.addEventListener( 'loaded', function(){ scope.onBaseTextureLoaded()} );
+        baseTexture.addEventListener('loaded', function(){ scope.onBaseTextureLoaded(); });
     }
 }
 
@@ -101,7 +101,7 @@ proto.onBaseTextureLoaded = function onBaseTextureLoaded(event)
  */
 proto.destroy = function destroy(destroyBase)
 {
-    if(destroyBase)this.baseTexture.destroy();
+    if(destroyBase) this.baseTexture.destroy();
 };
 
 /**
@@ -118,7 +118,7 @@ proto.setFrame = function setFrame(frame)
 
     if(frame.x + frame.width > this.baseTexture.width || frame.y + frame.height > this.baseTexture.height)
     {
-        throw new Error("Texture Error: frame does not fit inside the base Texture dimensions " + this);
+        throw new Error('Texture Error: frame does not fit inside the base Texture dimensions ' + this);
     }
 
     this.updateFrame = true;
@@ -137,13 +137,13 @@ proto.setFrame = function setFrame(frame)
  * @param crossorigin {Boolean} Whether requests should be treated as crossorigin
  * @return Texture
  */
-Texture.fromImage = function fromImage(imageUrl, crossorigin)
+Texture.fromImage = function fromImage(imageUrl, crossorigin, scaleMode)
 {
     var texture = Texture.cache[imageUrl];
 
     if(!texture)
     {
-        texture = new Texture(BaseTexture.fromImage(imageUrl, crossorigin));
+        texture = new Texture(BaseTexture.fromImage(imageUrl, crossorigin, scaleMode));
         Texture.cache[imageUrl] = texture;
     }
 
@@ -162,7 +162,7 @@ Texture.fromImage = function fromImage(imageUrl, crossorigin)
 Texture.fromFrame = function fromFrame(frameId)
 {
     var texture = Texture.cache[frameId];
-    if(!texture)throw new Error("The frameId '"+ frameId +"' does not exist in the texture cache " + this);
+    if(!texture) throw new Error('The frameId "' + frameId + '" does not exist in the texture cache ' + this);
     return texture;
 };
 
@@ -175,9 +175,9 @@ Texture.fromFrame = function fromFrame(frameId)
  * @param canvas {Canvas} The canvas element source of the texture
  * @return Texture
  */
-Texture.fromCanvas = function fromCanvas(canvas)
+Texture.fromCanvas = function fromCanvas(canvas, scaleMode)
 {
-    var baseTexture = new BaseTexture(canvas);
+    var baseTexture = new BaseTexture(canvas, scaleMode);
     return new Texture(baseTexture);
 };
 
@@ -205,7 +205,7 @@ Texture.addTextureToCache = function addTextureToCache(texture, id)
  */
 Texture.removeTextureFromCache = function removeTextureFromCache(id)
 {
-    var texture = Texture.cache[id]
+    var texture = Texture.cache[id];
     Texture.cache[id] = null;
     return texture;
 };
@@ -213,5 +213,6 @@ Texture.removeTextureFromCache = function removeTextureFromCache(id)
 Texture.cache = {};
 // this is more for webGL.. it contains updated frames..
 Texture.frameUpdates = [];
+Texture.SCALE_MODE = BaseTexture.SCALE_MODE;
 
 module.exports = Texture;

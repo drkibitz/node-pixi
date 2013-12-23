@@ -52,7 +52,6 @@ exports.renderGraphics = function renderGraphics(graphics, projection)
         exports.updateGraphics(graphics);
     }
 
-
     shaders.activatePrimitiveShader();
 
     // This  could be speeded up fo sure!
@@ -63,29 +62,27 @@ exports.renderGraphics = function renderGraphics(graphics, projection)
     // set the matrix transform for the
     gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
 
-    gl.uniformMatrix3fv(globals.primitiveProgram.translationMatrix, false, m);
+    gl.uniformMatrix3fv(globals.primitiveShader.translationMatrix, false, m);
 
-    gl.uniform2f(globals.primitiveProgram.projectionVector, projection.x, projection.y);
+    gl.uniform2f(globals.primitiveShader.projectionVector, projection.x, -projection.y);
+    gl.uniform2f(globals.primitiveShader.offsetVector, -globals.offset.x, -globals.offset.y);
 
-    gl.uniform1f(globals.primitiveProgram.alpha, graphics.worldAlpha);
-
+    gl.uniform1f(globals.primitiveShader.alpha, graphics.worldAlpha);
     gl.bindBuffer(gl.ARRAY_BUFFER, graphics._webGL.buffer);
 
-    // WHY DOES THIS LINE NEED TO BE THERE???
-    gl.vertexAttribPointer(globals.shaderProgram.vertexPositionAttribute, 2, gl.FLOAT, false, 0, 0);
-    // its not even used.. but need to be set or it breaks?
-    // only on pc though..
-
-    gl.vertexAttribPointer(globals.primitiveProgram.vertexPositionAttribute, 2, gl.FLOAT, false, 4 * 6, 0);
-    gl.vertexAttribPointer(globals.primitiveProgram.colorAttribute, 4, gl.FLOAT, false,4 * 6, 2 * 4);
+    gl.vertexAttribPointer(globals.primitiveShader.aVertexPosition, 2, gl.FLOAT, false, 4 * 6, 0);
+    gl.vertexAttribPointer(globals.primitiveShader.colorAttribute, 4, gl.FLOAT, false,4 * 6, 2 * 4);
 
     // set the index buffer!
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, graphics._webGL.indexBuffer);
 
+
     gl.drawElements(gl.TRIANGLE_STRIP,  graphics._webGL.indices.length, gl.UNSIGNED_SHORT, 0 );
 
+    shaders.deactivatePrimitiveShader();
+
     // return to default shader...
-    shaders.activateDefaultShader();
+//  shaders.activateShader(globals.defaultShader);
 };
 
 /**
@@ -98,16 +95,16 @@ exports.renderGraphics = function renderGraphics(graphics, projection)
  */
 exports.updateGraphics = function updateGraphics(graphics)
 {
-    for (var i=graphics._webGL.lastIndex; i < graphics.graphicsData.length; i++)
+    for (var i = graphics._webGL.lastIndex; i < graphics.graphicsData.length; i++)
     {
         var data = graphics.graphicsData[i];
 
-        if(data.type == Graphics.POLY)
+        if(data.type === Graphics.POLY)
         {
             if(data.fill)
             {
                 if(data.points.length>3)
-                exports.buildPoly(data, graphics._webGL);
+                    exports.buildPoly(data, graphics._webGL);
             }
 
             if(data.lineWidth > 0)
@@ -115,11 +112,11 @@ exports.updateGraphics = function updateGraphics(graphics)
                 exports.buildLine(data, graphics._webGL);
             }
         }
-        else if(data.type == Graphics.RECT)
+        else if(data.type === Graphics.RECT)
         {
             exports.buildRectangle(data, graphics._webGL);
         }
-        else if(data.type == Graphics.CIRC || data.type == Graphics.ELIP)
+        else if(data.type === Graphics.CIRC || data.type === Graphics.ELIP);
         {
             exports.buildCircle(data, graphics._webGL);
         }
@@ -189,7 +186,7 @@ exports.buildRectangle = function buildRectangle(graphicsData, webGLData)
         verts.push(r, g, b, alpha);
 
         // insert 2 dead triangles..
-        indices.push(vertPos, vertPos, vertPos+1, vertPos+2, vertPos+3, vertPos+3)
+        indices.push(vertPos, vertPos, vertPos+1, vertPos+2, vertPos+3, vertPos+3);
     }
 
     if(graphicsData.lineWidth)
@@ -226,9 +223,10 @@ exports.buildCircle = function buildCircle(graphicsData, webGLData)
 
     var totalSegs = 40;
     var seg = (Math.PI * 2) / totalSegs ;
-    var i;
 
-    if (graphicsData.fill)
+    var i = 0;
+
+    if(graphicsData.fill)
     {
         var color = hex2rgb(graphicsData.fillColor);
         var alpha = graphicsData.fillAlpha;
@@ -258,14 +256,14 @@ exports.buildCircle = function buildCircle(graphicsData, webGLData)
         indices.push(vecPos-1);
     }
 
-    if (graphicsData.lineWidth)
+    if(graphicsData.lineWidth)
     {
         graphicsData.points = [];
 
         for (i = 0; i < totalSegs + 1; i++)
         {
             graphicsData.points.push(x + Math.sin(seg * i) * width,
-                                     y + Math.cos(seg * i) * height)
+                                     y + Math.cos(seg * i) * height);
         }
 
         exports.buildLine(graphicsData, webGLData);
@@ -284,17 +282,25 @@ exports.buildCircle = function buildCircle(graphicsData, webGLData)
 exports.buildLine = function buildLine(graphicsData, webGLData)
 {
     // TODO OPTIMISE!
+    var i = 0;
 
-    var wrap = true;
     var points = graphicsData.points;
-    if (points.length === 0) return;
+    if(points.length === 0)return;
+
+    // if the line width is an odd number add 0.5 to align to a whole pixel
+    if(graphicsData.lineWidth%2)
+    {
+        for (i = 0; i < points.length; i++) {
+            points[i] += 0.5;
+        }
+    }
 
     // get first and last point.. figure out the middle!
     var firstPoint = new Point( points[0], points[1] );
     var lastPoint = new Point( points[points.length - 2], points[points.length - 1] );
 
     // if the first point is the last point - goona have issues :)
-    if (firstPoint.x == lastPoint.x && firstPoint.y == lastPoint.y)
+    if(firstPoint.x === lastPoint.x && firstPoint.y === lastPoint.y)
     {
         points.pop();
         points.pop();
@@ -305,7 +311,7 @@ exports.buildLine = function buildLine(graphicsData, webGLData)
         var midPointY = lastPoint.y + (firstPoint.y - lastPoint.y) *0.5;
 
         points.unshift(midPointX, midPointY);
-        points.push(midPointX, midPointY)
+        points.push(midPointX, midPointY);
     }
 
     var verts = webGLData.points;
@@ -324,12 +330,10 @@ exports.buildLine = function buildLine(graphicsData, webGLData)
     var g = color[1] * alpha;
     var b = color[2] * alpha;
 
-    var p1x, p1y, p2x, p2y, p3x, p3y;
+    var px, py, p1x, p1y, p2x, p2y, p3x, p3y;
     var perpx, perpy, perp2x, perp2y, perp3x, perp3y;
-    var ipx, ipy;
     var a1, b1, c1, a2, b2, c2;
     var denom, pdist, dist;
-    var px, py;
 
     p1x = points[0];
     p1y = points[1];
@@ -354,13 +358,13 @@ exports.buildLine = function buildLine(graphicsData, webGLData)
     verts.push(p1x + perpx , p1y + perpy,
                 r, g, b, alpha);
 
-    for (var i = 1; i < length-1; i++)
+    for (i = 1; i < length-1; i++)
     {
         p1x = points[(i-1)*2];
         p1y = points[(i-1)*2 + 1];
 
-        p2x = points[(i)*2]
-        p2y = points[(i)*2 + 1]
+        p2x = points[(i)*2];
+        p2y = points[(i)*2 + 1];
 
         p3x = points[(i+1)*2];
         p3y = points[(i+1)*2 + 1];
@@ -392,14 +396,25 @@ exports.buildLine = function buildLine(graphicsData, webGLData)
 
         denom = a1*b2 - a2*b1;
 
-        if (denom === 0) {
-            denom+=1;
+        if(Math.abs(denom) < 0.1 )
+        {
+
+            denom+=10.1;
+            verts.push(p2x - perpx , p2y - perpy,
+                r, g, b, alpha);
+
+            verts.push(p2x + perpx , p2y + perpy,
+                r, g, b, alpha);
+
+            continue;
         }
 
         px = (b1*c2 - b2*c1)/denom;
         py = (a2*c1 - a1*c2)/denom;
 
+
         pdist = (px -p2x) * (px -p2x) + (py -p2y) + (py -p2y);
+
 
         if(pdist > 140 * 140)
         {
@@ -425,6 +440,7 @@ exports.buildLine = function buildLine(graphicsData, webGLData)
         }
         else
         {
+
             verts.push(px , py);
             verts.push(r, g, b, alpha);
 
@@ -433,13 +449,13 @@ exports.buildLine = function buildLine(graphicsData, webGLData)
         }
     }
 
-    p1x = points[(length-2)*2]
-    p1y = points[(length-2)*2 + 1]
+    p1x = points[(length-2)*2];
+    p1y = points[(length-2)*2 + 1];
 
-    p2x = points[(length-1)*2]
-    p2y = points[(length-1)*2 + 1]
+    p2x = points[(length-1)*2];
+    p2y = points[(length-1)*2 + 1];
 
-    perpx = -(p1y - p2y)
+    perpx = -(p1y - p2y);
     perpy = p1x - p2x;
 
     dist = Math.sqrt(perpx*perpx + perpy*perpy);
@@ -448,10 +464,10 @@ exports.buildLine = function buildLine(graphicsData, webGLData)
     perpx *= width;
     perpy *= width;
 
-    verts.push(p2x - perpx , p2y - perpy)
+    verts.push(p2x - perpx , p2y - perpy);
     verts.push(r, g, b, alpha);
 
-    verts.push(p2x + perpx , p2y + perpy)
+    verts.push(p2x + perpx , p2y + perpy);
     verts.push(r, g, b, alpha);
 
     indices.push(indexStart);
@@ -476,23 +492,13 @@ exports.buildLine = function buildLine(graphicsData, webGLData)
 exports.buildPoly = function buildPoly(graphicsData, webGLData)
 {
     var points = graphicsData.points;
-    if (points.length < 6) return;
+    if(points.length < 6)return;
 
     // get first and last point.. figure out the middle!
     var verts = webGLData.points;
     var indices = webGLData.indices;
 
-    var triangles = triangulate(points);
-    var vertPos = verts.length / 6;
-
-    for (var i = 0, l = triangles.length; i < l; i+=3)
-    {
-        indices.push(triangles[i] + vertPos);
-        indices.push(triangles[i] + vertPos);
-        indices.push(triangles[i+1] + vertPos);
-        indices.push(triangles[i+2] +vertPos);
-        indices.push(triangles[i+2] + vertPos);
-    }
+    var length = points.length / 2;
 
     // sort color
     var color = hex2rgb(graphicsData.fillColor);
@@ -501,7 +507,22 @@ exports.buildPoly = function buildPoly(graphicsData, webGLData)
     var g = color[1] * alpha;
     var b = color[2] * alpha;
 
-    for (i = 0, l = points.length / 2; i < l; i++)
+    var triangles = triangulate(points);
+
+    var vertPos = verts.length / 6;
+
+    var i = 0;
+
+    for (i = 0; i < triangles.length; i+=3)
+    {
+        indices.push(triangles[i] + vertPos);
+        indices.push(triangles[i] + vertPos);
+        indices.push(triangles[i+1] + vertPos);
+        indices.push(triangles[i+2] +vertPos);
+        indices.push(triangles[i+2] + vertPos);
+    }
+
+    for (i = 0; i < length; i++)
     {
         verts.push(points[i * 2], points[i * 2 + 1],
                    r, g, b, alpha);

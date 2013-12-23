@@ -42,31 +42,36 @@ function WebGLRenderer(width, height, view, transparent, antialias)
 
     // deal with losing context..
     var scope = this;
-    this.view.addEventListener('webglcontextlost', function(event) { scope.handleContextLost(event); }, false)
-    this.view.addEventListener('webglcontextrestored', function(event) { scope.handleContextRestored(event); }, false)
+    this.view.addEventListener('webglcontextlost', function(event) { scope.handleContextLost(event); }, false);
+    this.view.addEventListener('webglcontextrestored', function(event) { scope.handleContextRestored(event); }, false);
 
     this.batchs = [];
 
+    var options = {
+        alpha: this.transparent,
+        antialias:!!antialias, // SPEED UP??
+        premultipliedAlpha:false,
+        stencil:true
+    };
+
     // do a catch.. only 1 webGL renderer..
-    try
-    {
-        gl = globals.gl = this.gl = this.view.getContext("experimental-webgl",  {
-             alpha: this.transparent,
-             antialias:!!antialias, // SPEED UP??
-             premultipliedAlpha:false,
-             stencil:true
-        });
+    //try 'experimental-webgl'
+    try {
+        gl = this.view.getContext('experimental-webgl',  options);
+    } catch (e) {
+        //try 'webgl'
+        try {
+            gl = this.view.getContext('webgl',  options);
+        } catch (e2) {
+            // fail, not able to get a context
+            throw new Error(' This browser does not support webGL. Try using the canvas renderer' + this);
+        }
     }
-    catch (e)
-    {
-        throw new Error(" This browser does not support webGL. Try using the canvas renderer" + this);
-    }
+    this.gl = gl;
 
-    shaders.initPrimitiveShader();
-    shaders.initDefaultShader();
-    shaders.initDefaultStripShader();
+    shaders.initDefaultShaders();
 
-    shaders.activateDefaultShader();
+    gl.useProgram(globals.defaultShader.program);
 
     this.batch = new WebGLBatch(gl);
     gl.disable(gl.DEPTH_TEST);
@@ -76,12 +81,18 @@ function WebGLRenderer(width, height, view, transparent, antialias)
     gl.colorMask(true, true, true, this.transparent);
 
     this.projection = new Point(400, 300);
+    this.offest = new Point(0, 0);
 
     this.resize(this.width, this.height);
     this.contextLost = false;
 
-    this.stageRenderGroup = new WebGLRenderGroup(this.gl);
-}
+    this.stageRenderGroup = new WebGLRenderGroup(this.gl, this.transparent);
+
+    // TODO remove thease globals..
+    globals.gl = gl;
+    globals.projection = this.projection;
+    globals.offset = this.offset;
+};
 
 var proto = WebGLRenderer.prototype;
 
@@ -105,15 +116,6 @@ proto.render = function render(stage)
         this.stageRenderGroup.setRenderable(stage);
     }
 
-    // TODO not needed now...
-    // update children if need be
-    // best to remove first!
-    /*for (var i=0; i < stage.__childrenRemoved.length; i++)
-    {
-        var group = stage.__childrenRemoved[i].__renderGroup
-        if(group)group.removeDisplayObject(stage.__childrenRemoved[i]);
-    }*/
-
     var gl = this.gl;
 
     // update any textures
@@ -134,7 +136,11 @@ proto.render = function render(stage)
 
     // HACK TO TEST
 
-    // this.stageRenderGroup.backgroundColor = stage.backgroundColorSplit;
+    this.stageRenderGroup.backgroundColor = stage.backgroundColorSplit;
+
+    this.projection.x =  this.width/2;
+    this.projection.y =  -this.height/2;
+
     this.stageRenderGroup.render(this.projection);
 
     // interaction
@@ -180,8 +186,8 @@ proto.resize = function resize(width, height)
 
     //var projectionMatrix = this.projectionMatrix;
 
-    this.projection.x = this.width/2;
-    this.projection.y = this.height/2;
+    this.projection.x =  this.width/2;
+    this.projection.y =  -this.height/2;
 
 //  projectionMatrix[0] = 2/this.width;
 //  projectionMatrix[5] = -2/this.height;
@@ -211,7 +217,7 @@ proto.handleContextLost = function handleContextLost(event)
  */
 proto.handleContextRestored = function handleContextRestored(event)
 {
-    var gl = this.gl = this.view.getContext("experimental-webgl",  {
+    var gl = this.gl = this.view.getContext('experimental-webgl',  {
         alpha: true
     });
 
@@ -230,7 +236,7 @@ proto.handleContextRestored = function handleContextRestored(event)
         this.batchs[i].dirty = true;
     }
 
-    WebGLBatch.restoreBatches(this.gl);
+    WebGLBatch.restoreBatches(gl);
 
     this.contextLost = false;
 };

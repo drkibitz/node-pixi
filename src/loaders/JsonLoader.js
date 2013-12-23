@@ -13,8 +13,8 @@ var platform = require('../platform');
 
 /**
  * The json file loader is used to load in JSON data and parsing it
- * When loaded this class will dispatch a "loaded" event
- * If load failed this class will dispatch a "error" event
+ * When loaded this class will dispatch a 'loaded' event
+ * If load failed this class will dispatch a 'error' event
  *
  * @class JsonLoader
  * @uses EventTarget
@@ -48,7 +48,7 @@ function JsonLoader(url, crossorigin) {
      * @type String
      * @readOnly
      */
-    this.baseUrl = url.replace(/[^\/]*$/, "");
+    this.baseUrl = url.replace(/[^\/]*$/, '');
 
     /**
      * [read-only] Whether the data has loaded yet
@@ -62,7 +62,8 @@ function JsonLoader(url, crossorigin) {
 
 var proto = JsonLoader.prototype;
 
-proto.handleEvent = function handleEvent(event) {
+proto.handleEvent = function handleEvent(event)
+{
     switch (event.type) {
     case 'load':
         this.onJSONLoaded(); break;
@@ -82,8 +83,8 @@ proto.load = function load()
     this.request.addEventListener('load', this);
     this.request.addEventListener('error', this);
 
-    this.request.open("GET", this.url, true);
-    if (this.request.overrideMimeType) this.request.overrideMimeType("application/json");
+    this.request.open('GET', this.url, true);
+    if (this.request.overrideMimeType) this.request.overrideMimeType('application/json');
     this.request.send(null);
 };
 
@@ -106,7 +107,7 @@ proto.onJSONLoaded = function onJSONLoaded()
         var frameData = this.json.frames;
 
         this.texture = image.texture.baseTexture;
-        image.addEventListener("loaded", function (event) {
+        image.addEventListener('loaded', function() {
             scope.onLoaded();
         });
 
@@ -154,7 +155,7 @@ proto.onJSONLoaded = function onJSONLoaded()
 proto.onLoaded = function onLoaded()
 {
     this.loaded = true;
-    this.dispatchEvent({type: "loaded", content: this});
+    this.dispatchEvent({type: 'loaded', content: this});
 };
 
 /**
@@ -165,7 +166,7 @@ proto.onLoaded = function onLoaded()
  */
 proto.onError = function onError()
 {
-    this.dispatchEvent({type: "error", content: this});
+    this.dispatchEvent({type: 'error', content: this});
 };
 
 AssetLoader.registerLoaderType('json', JsonLoader);

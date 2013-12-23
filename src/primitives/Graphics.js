@@ -4,6 +4,7 @@
 'use strict';
 
 var DisplayObjectContainer = require('../display/DisplayObjectContainer');
+var Rectangle = require('../geom/Rectangle');
 
 /**
  * The Graphics class contains a set of methods that you can use to create primitive shapes and lines.
@@ -190,9 +191,9 @@ proto.drawCircle = function drawCircle(x, y, radius)
 };
 
 /**
- * Draws an elipse.
+ * Draws an ellipse.
  *
- * @method drawElipse
+ * @method drawEllipse
  * @param x {Number}
  * @param y {Number}
  * @param width {Number}
@@ -223,6 +224,76 @@ proto.clear = function clear()
     this.dirty = true;
     this.clearDirty = true;
     this.graphicsData = [];
+
+    this.bounds = null; //new Rectangle();
+};
+
+
+proto.updateFilterBounds = function updateFilterBounds()
+{
+    if(!this.bounds)
+    {
+        var minX = Infinity;
+        var maxX = -Infinity;
+
+        var minY = Infinity;
+        var maxY = -Infinity;
+
+        var points, x, y;
+
+        for (var i = 0; i < this.graphicsData.length; i++) {
+            var data = this.graphicsData[i];
+            var type = data.type;
+            var lineWidth = data.lineWidth;
+
+            points = data.points;
+
+            if(type === Graphics.RECT)
+            {
+                x = points.x - lineWidth/2;
+                y = points.y - lineWidth/2;
+                var width = points.width + lineWidth;
+                var height = points.height + lineWidth;
+
+                minX = x < minX ? x : minX;
+                maxX = x + width > maxX ? x + width : maxX;
+
+                minY = y < minY ? x : minY;
+                maxY = y + height > maxY ? y + height : maxY;
+            }
+            else if(type === Graphics.CIRC || type === Graphics.ELIP)
+            {
+                x = points.x;
+                y = points.y;
+                var radius = points.radius + lineWidth/2;
+
+                minX = x - radius < minX ? x - radius : minX;
+                maxX = x + radius > maxX ? x + radius : maxX;
+
+                minY = y - radius < minY ? y - radius : minY;
+                maxY = y + radius > maxY ? y + radius : maxY;
+            }
+            else
+            {
+                // POLY
+                for (var j = 0; j < points.length; j+=2)
+                {
+
+                    x = points[j];
+                    y = points[j+1];
+
+                    minX = x-lineWidth < minX ? x-lineWidth : minX;
+                    maxX = x+lineWidth > maxX ? x+lineWidth : maxX;
+
+                    minY = y-lineWidth < minY ? y-lineWidth : minY;
+                    maxY = y+lineWidth > maxY ? y+lineWidth : maxY;
+                }
+            }
+        }
+
+        this.bounds = new Rectangle(minX, minY, maxX - minX, maxY - minY);
+    }
+//  console.log(this.bounds);
 };
 
 // SOME TYPES:

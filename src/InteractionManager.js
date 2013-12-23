@@ -65,7 +65,7 @@ InteractionData.prototype.getLocalPosition = function getLocalPosition(displayOb
                                a00 * id * world.y + -a10 * id * world.x + (-a12 * a00 + a02 * a10) * id)
 };
 
-/**
+ /**
  * The interaction manager deals with mouse and touch events. Any DisplayObject can be interactive
  * This manager also supports multitouch.
  *
@@ -151,27 +151,27 @@ proto.collectInteractiveSprite = function collectInteractiveSprite(displayObject
         var child = children[i];
 
 //      if(child.visible) {
-            // push all interactive bits
-            if(child.interactive)
-            {
-                iParent.interactiveChildren = true;
-                //child.__iParent = iParent;
-                this.interactiveItems.push(child);
+        // push all interactive bits
+        if(child.interactive)
+        {
+            iParent.interactiveChildren = true;
+            //child.__iParent = iParent;
+            this.interactiveItems.push(child);
 
-                if(child.children.length > 0)
-                {
-                    this.collectInteractiveSprite(child, child);
-                }
-            }
-            else
+            if(child.children.length > 0)
             {
-                child.__iParent = null;
-
-                if(child.children.length > 0)
-                {
-                    this.collectInteractiveSprite(child, iParent);
-                }
+                this.collectInteractiveSprite(child, child);
             }
+        }
+        else
+        {
+            child.__iParent = null;
+
+            if(child.children.length > 0)
+            {
+                this.collectInteractiveSprite(child, iParent);
+            }
+        }
 //      }
     }
 };
@@ -281,8 +281,7 @@ proto.update = function update()
     // loop through interactive objects!
     var length = this.interactiveItems.length;
 
-    this.interactionDOMElement.style.cursor = "default";
-
+    this.interactionDOMElement.style.cursor = 'inherit';
 
     // loop through interactive objects!
     for (i = 0, l = this.interactiveItems.length; i < l; i++)
@@ -306,7 +305,7 @@ proto.update = function update()
             // loks like there was a hit!
             if(item.__hit)
             {
-                if(item.buttonMode) this.interactionDOMElement.style.cursor = "pointer";
+                if(item.buttonMode) this.interactionDOMElement.style.cursor = item.defaultCursor;
 
                 if(!item.__isOver)
                 {
@@ -325,7 +324,6 @@ proto.update = function update()
                 }
             }
         }
-
         // --->
     }
 };
@@ -371,9 +369,7 @@ proto.onMouseDown = function onMouseDown(event)
     // hit test each item! ->
     // get interactive items under point??
     //stage.__i
-    var index = 0;
-    var parent = this.stage;
-    var hit = false;
+    var length = this.interactiveItems.length;
 
     // while
     // hit test
@@ -384,7 +380,7 @@ proto.onMouseDown = function onMouseDown(event)
         if(item.mousedown || item.click)
         {
             item.__mouseIsDown = true;
-            hit = item.__hit = this.hitTest(item, this.mouse);
+            item.__hit = this.hitTest(item, this.mouse);
 
             if(item.__hit)
             {
@@ -403,7 +399,7 @@ proto.onMouseOut = function onMouseOut(event)
 {
     var length = this.interactiveItems.length;
 
-    this.interactionDOMElement.style.cursor = "default";
+    this.interactionDOMElement.style.cursor = 'inherit';
 
     for (var i = 0, l = this.interactiveItems.length; i < l; i++)
     {
@@ -516,7 +512,7 @@ proto.hitTest = function hitTest(item, interactionData)
             if(y > y1 && y < y1 + height)
             {
                 // set the target property if a hit is true!
-                interactionData.target = item
+                interactionData.target = item;
                 return true;
             }
         }
@@ -529,7 +525,7 @@ proto.hitTest = function hitTest(item, interactionData)
         if(hit)
         {
             // hmm.. TODO SET CORRECT TARGET?
-            interactionData.target = item
+            interactionData.target = item;
             return true;
         }
     }
@@ -642,7 +638,7 @@ proto.onTouchEnd = function onTouchEnd(event)
             var itemTouchData = item.__touchData; // <-- Here!
             item.__hit = this.hitTest(item, touchData);
 
-            if(itemTouchData == touchData)
+            if(itemTouchData === touchData)
             {
                 // so this one WAS down...
                 touchData.originalEvent = event;

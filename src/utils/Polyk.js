@@ -82,11 +82,12 @@ exports.triangulate = function(p)
 {
     var sign = true;
 
-    var n = p.length>>1;
-    if(n<3) return [];
+    var n = p.length >> 1;
+    if(n < 3) return [];
+
     var tgs = [];
     var avl = [];
-    for(var i=0; i<n; i++) avl.push(i);
+    for(var i = 0; i < n; i++) avl.push(i);
 
     i = 0;
     var al = n;
@@ -104,13 +105,18 @@ exports.triangulate = function(p)
         if(convex(ax, ay, bx, by, cx, cy, sign))
         {
             earFound = true;
-            for(var j=0; j<al; j++)
+            for(var j = 0; j < al; j++)
             {
                 var vi = avl[j];
-                if(vi==i0 || vi==i1 || vi==i2) continue;
-                if(pointInTriangle(p[2*vi], p[2*vi+1], ax, ay, bx, by, cx, cy)) {earFound = false; break;}
+                if(vi === i0 || vi === i1 || vi === i2) continue;
+
+                if(pointInTriangle(p[2*vi], p[2*vi+1], ax, ay, bx, by, cx, cy)) {
+                    earFound = false;
+                    break;
+                }
             }
         }
+
         if(earFound)
         {
             tgs.push(i0, i1, i2);
@@ -126,7 +132,7 @@ exports.triangulate = function(p)
             {
                 tgs = [];
                 avl = [];
-                for(i=0; i<n; i++) avl.push(i);
+                for(i = 0; i < n; i++) avl.push(i);
 
                 i = 0;
                 al = n;
@@ -140,6 +146,7 @@ exports.triangulate = function(p)
             }
         }
     }
+
     tgs.push(avl[0], avl[1], avl[2]);
     return tgs;
-}
+};

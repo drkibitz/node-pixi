@@ -7,6 +7,7 @@ var mat3 = require('../geom/matrix').mat3;
 
 var FilterBlock = require('../filters/FilterBlock');
 var Point = require('../geom/Point');
+var Rectangle = require('../geom/Rectangle');
 
 /**
  * The base class for all objects that are rendered on the screen.
@@ -18,7 +19,6 @@ function DisplayObject()
 {
     this.last = this;
     this.first = this;
-
     /**
      * The coordinate of the object relative to the local coordinates of the parent.
      *
@@ -129,6 +129,8 @@ function DisplayObject()
      */
     this._interactive = false;
 
+    this.defaultCursor = 'pointer';
+
     /**
      * [read-only] Current transform of the object based on world (parent) factors
      *
@@ -170,6 +172,9 @@ function DisplayObject()
     // chach that puppy!
     this._sr = 0;
     this._cr = 1;
+
+
+    this.filterArea = new Rectangle(0,0,1,1);
 
     /*
      * MOUSE Callbacks
@@ -280,32 +285,71 @@ Object.defineProperty(proto, 'mask', {
     },
     set: function(value) {
 
-        this._mask = value;
 
         if(value)
         {
-            this.addFilter(value)
+            if(this._mask)
+            {
+                value.start = this._mask.start;
+                value.end = this._mask.end;
+            }
+            else
+            {
+                this.addFilter(value);
+                value.renderable = false;
+            }
         }
         else
         {
-             this.removeFilter();
+            this.removeFilter(this._mask);
+            this._mask.renderable = true;
         }
+
+        this._mask = value;
     }
 });
 
 /**
- * [Deprecated] Indicates if the sprite will have touch and mouse interactivity. It is false by default
- * Instead of using this function you can now simply set the interactive property to true or false
- *
- * @deprecated
- * @method setInteractive
- * @param interactive {Boolean}
- * @deprecated Simply set the `interactive` property directly
+ * Sets the filters for the displayObject.
+ * * IMPORTANT: This is a webGL only feature and will be ignored by the canvas renderer.
+ * To remove filters simply set this property to 'null'
+ * @property filters
+ * @type Array An array of filters
  */
-proto.setInteractive = function setInteractive(interactive)
-{
-    this.interactive = interactive;
-};
+Object.defineProperty(proto, 'filters', {
+    get: function() {
+        return this._filters;
+    },
+    set: function(value) {
+
+        if(value)
+        {
+            if(this._filters)this.removeFilter(this._filters);
+            this.addFilter(value);
+
+            // now put all the passes in one place..
+            var passes = [];
+            for (var i = 0; i < value.length; i++)
+            {
+                var filterPasses = value[i].passes;
+                for (var j = 0; j < filterPasses.length; j++)
+                {
+                    passes.push(filterPasses[j]);
+                }
+            }
+
+            value.start.filterPasses = passes;
+        }
+        else
+        {
+            if(this._filters) {
+                this.removeFilter(this._filters);
+            }
+        }
+
+        this._filters = value;
+    }
+});
 
 /*
  * Adds a filter to this displayObject
@@ -314,31 +358,40 @@ proto.setInteractive = function setInteractive(interactive)
  * @param mask {Graphics} the graphics object to use as a filter
  * @private
  */
-proto.addFilter = function addFilter(mask)
+proto.addFilter = function addFilter(data)
 {
-    if(this.filter)return;
-    this.filter = true;
+    //if(this.filter)return;
+    //this.filter = true;
+//  data[0].target = this;
+
 
     // insert a filter block..
+    // TODO Onject pool thease bad boys..
     var start = new FilterBlock();
     var end = new FilterBlock();
 
-    start.mask = mask;
-    end.mask = mask;
+    data.start = start;
+    data.end = end;
+
+    start.data = data;
+    end.data = data;
 
     start.first = start.last =  this;
     end.first = end.last = this;
 
     start.open = true;
 
+    start.target = this;
+
     /*
      * insert start
      */
 
-    var childFirst, childLast,
-        nextObject, previousObject;
+    var childFirst = start;
+    var childLast = start;
+    var nextObject;
+    var previousObject;
 
-    childFirst = childLast = start;
     previousObject = this.first._iPrev;
 
     if(previousObject)
@@ -357,7 +410,6 @@ proto.addFilter = function addFilter(mask)
         nextObject._iPrev = childLast;
         childLast._iNext = nextObject;
     }
-
 
     // now insert the end filter block..
 
@@ -386,7 +438,7 @@ proto.addFilter = function addFilter(mask)
     var prevLast = this.last;
     while(updateLast)
     {
-        if(updateLast.last == prevLast)
+        if(updateLast.last === prevLast)
         {
             updateLast.last = end;
         }
@@ -400,8 +452,6 @@ proto.addFilter = function addFilter(mask)
     {
         this.__renderGroup.addFilterBlocks(start, end);
     }
-
-    mask.renderable = false;
 };
 
 /*
@@ -410,13 +460,14 @@ proto.addFilter = function addFilter(mask)
  * @method removeFilter
  * @private
  */
-proto.removeFilter = function removeFilter()
+proto.removeFilter = function removeFilter(data)
 {
-    if(!this.filter)return;
-    this.filter = false;
-
+    //if(!this.filter)return;
+    //this.filter = false;
+    // console.log('YUOIO')
     // modify the list..
-    var startBlock = this.first;
+    var startBlock = data.start;
+
 
     var nextObject = startBlock._iNext;
     var previousObject = startBlock._iPrev;
@@ -426,9 +477,8 @@ proto.removeFilter = function removeFilter()
 
     this.first = startBlock._iNext;
 
-
     // remove the end filter
-    var lastBlock = this.last;
+    var lastBlock = data.end;
 
     nextObject = lastBlock._iNext;
     previousObject = lastBlock._iPrev;
@@ -440,15 +490,12 @@ proto.removeFilter = function removeFilter()
     var tempLast =  lastBlock._iPrev;
     // need to make sure the parents last is updated too
     var updateLast = this;
-    while(updateLast.last == lastBlock)
+    while(updateLast.last === lastBlock)
     {
         updateLast.last = tempLast;
         updateLast = updateLast.parent;
         if(!updateLast)break;
     }
-
-    var mask = startBlock.mask
-    mask.renderable = true;
 
     // if webGL...
     if(this.__renderGroup)
@@ -478,7 +525,7 @@ proto.updateTransform = function updateTransform()
     var worldTransform = this.worldTransform;
     //console.log(localTransform)
     localTransform[0] = this._cr * this.scale.x;
-    localTransform[1] = -this._sr * this.scale.y
+    localTransform[1] = -this._sr * this.scale.y;
     localTransform[3] = this._sr * this.scale.x;
     localTransform[4] = this._cr * this.scale.y;
 
@@ -494,8 +541,8 @@ proto.updateTransform = function updateTransform()
         b00 = parentTransform[0], b01 = parentTransform[1], b02 = parentTransform[2],
         b10 = parentTransform[3], b11 = parentTransform[4], b12 = parentTransform[5];
 
-    localTransform[2] = a02
-    localTransform[5] = a12
+    localTransform[2] = a02;
+    localTransform[5] = a12;
 
     worldTransform[0] = b00 * a00 + b01 * a10;
     worldTransform[1] = b00 * a01 + b01 * a11;

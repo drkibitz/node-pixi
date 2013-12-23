@@ -41,7 +41,7 @@ describe('Example 1 - Basics', function () {
         requestAnimFrame( animate );
 
         // create a texture from an image path
-        var texture = PIXI.Texture.fromImage(baseUri + "/bunny.png");
+        var texture = PIXI.Texture.fromImage(baseUri + '/bunny.png');
         // create a new Sprite using the texture
         bunny = new PIXI.Sprite(texture);
 

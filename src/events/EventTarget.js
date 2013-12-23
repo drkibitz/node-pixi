@@ -5,6 +5,11 @@
 'use strict';
 
 /**
+ * https://github.com/mrdoob/eventtarget.js/
+ * THankS mr DOob!
+ */
+
+/**
  * Adds event emitter functionality to a class
  *
  * @class EventTarget
@@ -62,6 +67,12 @@ function EventTarget() {
 
         }
 
+    };
+
+    this.removeAllEventListeners = function( type ) {
+        var a = listeners[type];
+        if (a)
+            a.length = 0;
     };
 }
 

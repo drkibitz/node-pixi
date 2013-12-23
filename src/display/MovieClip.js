@@ -99,7 +99,7 @@ Object.defineProperty(proto, 'totalFrames', {
 proto.stop = function()
 {
     this.playing = false;
-}
+};
 
 /**
  * Plays the MovieClip
@@ -109,7 +109,7 @@ proto.stop = function()
 proto.play = function()
 {
     this.playing = true;
-}
+};
 
 /**
  * Stops the MovieClip and goes to a specific frame
@@ -123,7 +123,7 @@ proto.gotoAndStop = function(frameNumber)
     this.currentFrame = frameNumber;
     var round = (this.currentFrame + 0.5) | 0;
     this.setTexture(this.textures[round % this.textures.length]);
-}
+};
 
 /**
  * Goes to a specific frame and begins playing the MovieClip

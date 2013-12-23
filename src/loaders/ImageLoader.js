@@ -50,7 +50,7 @@ proto.load = function load()
     if(!this.texture.baseTexture.hasLoaded)
     {
         var scope = this;
-        this.texture.baseTexture.addEventListener("loaded", function()
+        this.texture.baseTexture.addEventListener('loaded', function()
         {
             scope.onLoaded();
         });
@@ -69,7 +69,7 @@ proto.load = function load()
  */
 proto.onLoaded = function onLoaded()
 {
-    this.dispatchEvent({type: "loaded", content: this});
+    this.dispatchEvent({type: 'loaded', content: this});
 };
 
 /**
@@ -100,14 +100,14 @@ proto.loadFramedSpriteSheet = function(frameWidth, frameHeight, textureName)
             });
 
             this.frames.push(texture);
-            if (textureName) Texture.cache[textureName+'-'+i] = texture;
+            if (textureName) Texture.cache[textureName + '-' + i] = texture;
         }
     }
 
     if(!this.texture.baseTexture.hasLoaded)
     {
         var scope = this;
-        this.texture.baseTexture.addEventListener("loaded", function() {
+        this.texture.baseTexture.addEventListener('loaded', function() {
             scope.onLoaded();
         });
     }

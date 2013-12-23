@@ -73,10 +73,10 @@ pixi.activatePrimitiveShader = shaders.activatePrimitiveShader;
 /*
  * DEBUGGING ONLY
  */
-pixi.runList = function runList(item)
+PIXI.runList = function(item)
 {
-    platform.console.log(">>>>>>>>>")
-    platform.console.log("_")
+    platform.console.log('>>>>>>>>>');
+    platform.console.log('_');
     var safe = 0;
     var tmp = item.first;
     platform.console.log(tmp);
@@ -89,8 +89,8 @@ pixi.runList = function runList(item)
 
         if(safe > 100)
         {
-            platform.console.log("BREAK")
-            break
+            platform.console.log('BREAK');
+            break;
         }
     }
 };

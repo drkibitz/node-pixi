@@ -12,10 +12,10 @@ var Texture = require('../textures/Texture');
 var platform = require('../platform');
 
 /**
- * The xml loader is used to load in XML bitmap font data ("xml" or "fnt")
+ * The xml loader is used to load in XML bitmap font data ('xml' or 'fnt')
  * To generate the data you can use http://www.angelcode.com/products/bmfont/
  * This loader will also load the image file as the data.
- * When loaded this class will dispatch a "loaded" event
+ * When loaded this class will dispatch a 'loaded' event
  *
  * @class BitmapFontLoader
  * @uses EventTarget
@@ -28,7 +28,7 @@ function BitmapFontLoader(url, crossorigin)
     /*
      * i use texture packer to load the assets..
      * http://www.codeandweb.com/texturepacker
-     * make sure to set the format as "JSON"
+     * make sure to set the format as 'JSON'
      */
     EventTarget.call(this);
 
@@ -55,16 +55,7 @@ function BitmapFontLoader(url, crossorigin)
      * @type String
      * @readOnly
      */
-    this.baseUrl = url.replace(/[^\/]*$/, "");
-
-    /**
-     * [read-only] Whether the data has loaded yet
-     *
-     * @property loaded
-     * @type Boolean
-     * @readOnly
-     */
-    this.loaded = false;
+    this.baseUrl = url.replace(/[^\/]*$/, '');
 
     /**
      * [read-only] The texture of the bitmap font
@@ -97,9 +88,9 @@ proto.load = function load()
     this.request.addEventListener('load', this);
     this.request.addEventListener('error', this);
 
-    this.request.open("GET", this.url, true);
-    if (this.request.overrideMimeType) this.request.overrideMimeType("application/xml");
-    this.request.send(null)
+    this.request.open('GET', this.url, true);
+    if (this.request.overrideMimeType) this.request.overrideMimeType('application/xml');
+    this.request.send(null);
 };
 
 /**
@@ -110,36 +101,36 @@ proto.load = function load()
  */
 proto.onXMLLoaded = function onXMLLoaded()
 {
-    var textureUrl = this.baseUrl + this.request.responseXML.getElementsByTagName("page")[0].attributes.getNamedItem("file").nodeValue;
+    var textureUrl = this.baseUrl + this.request.responseXML.getElementsByTagName('page')[0].attributes.getNamedItem('file').nodeValue;
     var image = new ImageLoader(textureUrl, this.crossorigin);
     this.texture = image.texture.baseTexture;
 
     var data = {};
-    var info = this.request.responseXML.getElementsByTagName("info")[0];
-    var common = this.request.responseXML.getElementsByTagName("common")[0];
-    data.font = info.attributes.getNamedItem("face").nodeValue;
-    data.size = parseInt(info.attributes.getNamedItem("size").nodeValue, 10);
-    data.lineHeight = parseInt(common.attributes.getNamedItem("lineHeight").nodeValue, 10);
+    var info = this.request.responseXML.getElementsByTagName('info')[0];
+    var common = this.request.responseXML.getElementsByTagName('common')[0];
+    data.font = info.attributes.getNamedItem('face').nodeValue;
+    data.size = parseInt(info.attributes.getNamedItem('size').nodeValue, 10);
+    data.lineHeight = parseInt(common.attributes.getNamedItem('lineHeight').nodeValue, 10);
     data.chars = {};
 
     //parse letters
-    var letters = this.request.responseXML.getElementsByTagName("char");
+    var letters = this.request.responseXML.getElementsByTagName('char');
 
     for (var i = 0; i < letters.length; i++)
     {
-        var charCode = parseInt(letters[i].attributes.getNamedItem("id").nodeValue, 10);
+        var charCode = parseInt(letters[i].attributes.getNamedItem('id').nodeValue, 10);
 
         var textureRect = new Rectangle(
-            parseInt(letters[i].attributes.getNamedItem("x").nodeValue, 10),
-            parseInt(letters[i].attributes.getNamedItem("y").nodeValue, 10),
-            parseInt(letters[i].attributes.getNamedItem("width").nodeValue, 10),
-            parseInt(letters[i].attributes.getNamedItem("height").nodeValue, 10)
+            parseInt(letters[i].attributes.getNamedItem('x').nodeValue, 10),
+            parseInt(letters[i].attributes.getNamedItem('y').nodeValue, 10),
+            parseInt(letters[i].attributes.getNamedItem('width').nodeValue, 10),
+            parseInt(letters[i].attributes.getNamedItem('height').nodeValue, 10)
         );
 
         data.chars[charCode] = {
-            xOffset: parseInt(letters[i].attributes.getNamedItem("xoffset").nodeValue, 10),
-            yOffset: parseInt(letters[i].attributes.getNamedItem("yoffset").nodeValue, 10),
-            xAdvance: parseInt(letters[i].attributes.getNamedItem("xadvance").nodeValue, 10),
+            xOffset: parseInt(letters[i].attributes.getNamedItem('xoffset').nodeValue, 10),
+            yOffset: parseInt(letters[i].attributes.getNamedItem('yoffset').nodeValue, 10),
+            xAdvance: parseInt(letters[i].attributes.getNamedItem('xadvance').nodeValue, 10),
             kerning: {},
             texture: Texture.cache[charCode] = new Texture(this.texture, textureRect)
 
@@ -147,12 +138,12 @@ proto.onXMLLoaded = function onXMLLoaded()
     }
 
     //parse kernings
-    var kernings = this.request.responseXML.getElementsByTagName("kerning");
+    var kernings = this.request.responseXML.getElementsByTagName('kerning');
     for (i = 0; i < kernings.length; i++)
     {
-       var first = parseInt(kernings[i].attributes.getNamedItem("first").nodeValue, 10);
-       var second = parseInt(kernings[i].attributes.getNamedItem("second").nodeValue, 10);
-       var amount = parseInt(kernings[i].attributes.getNamedItem("amount").nodeValue, 10);
+        var first = parseInt(kernings[i].attributes.getNamedItem('first').nodeValue, 10);
+        var second = parseInt(kernings[i].attributes.getNamedItem('second').nodeValue, 10);
+        var amount = parseInt(kernings[i].attributes.getNamedItem('amount').nodeValue, 10);
 
         data.chars[second].kerning[first] = amount;
 
@@ -161,7 +152,7 @@ proto.onXMLLoaded = function onXMLLoaded()
     BitmapText.fonts[data.font] = data;
 
     var scope = this;
-    image.addEventListener("loaded", function() {
+    image.addEventListener('loaded', function() {
         scope.onLoaded();
     });
     image.load();
@@ -176,7 +167,7 @@ proto.onXMLLoaded = function onXMLLoaded()
 proto.onLoaded = function onLoaded()
 {
     this.loaded = true;
-    this.dispatchEvent({type: "loaded", content: this});
+    this.dispatchEvent({type: 'loaded', content: this});
 };
 
 /**
@@ -187,7 +178,7 @@ proto.onLoaded = function onLoaded()
  */
 proto.onError = function onError()
 {
-    this.dispatchEvent({type: "error", content: this});
+    this.dispatchEvent({type: 'error', content: this});
 };
 
 AssetLoader.registerLoaderType('xml', BitmapFontLoader);

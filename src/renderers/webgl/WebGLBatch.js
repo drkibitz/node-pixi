@@ -47,6 +47,7 @@ proto.clean = function clean()
     this.colors = [];
     this.dynamicSize = 1;
     this.texture = null;
+    this.last = null;
     this.size = 0;
     this.head = null;
     this.tail = null;
@@ -140,7 +141,7 @@ proto.insertAfter = function insertAfter(sprite, previousSprite)
     }
     else
     {
-        this.tail = sprite
+        this.tail = sprite;
     }
 };
 
@@ -179,7 +180,7 @@ proto.remove = function remove(sprite)
     else
     {
         this.tail = sprite.__prev;
-        this.tail.__next = null
+        this.tail.__next = null;
     }
 
     sprite.batch = null;
@@ -264,14 +265,15 @@ proto.merge = function merge(batch)
 proto.growBatch = function growBatch()
 {
     var gl = this.gl;
-    if( this.size == 1)
+    if( this.size === 1)
     {
         this.dynamicSize = 1;
     }
     else
     {
-        this.dynamicSize = this.size * 1.5
+        this.dynamicSize = this.size * 1.5;
     }
+
     // grow verts
     this.verticies = new Float32Array(this.dynamicSize * 8);
 
@@ -315,16 +317,13 @@ proto.growBatch = function growBatch()
  */
 proto.refresh = function refresh()
 {
-    var gl = this.gl;
-
     if (this.dynamicSize < this.size)
     {
         this.growBatch();
     }
 
     var indexRun = 0;
-    var worldTransform, width, height, aX, aY, w0, w1, h0, h1, index;
-    var a, b, c, d, tx, ty, colorIndex;
+    var index, colorIndex;
 
     var displayObject = this.head;
 
@@ -357,7 +356,7 @@ proto.refresh = function refresh()
 
         displayObject = displayObject.__next;
 
-        indexRun ++;
+        indexRun++;
     }
 
     this.dirtyUVS = true;
@@ -371,14 +370,16 @@ proto.refresh = function refresh()
  */
 proto.update = function update()
 {
-    var gl = this.gl;
-    var worldTransform, width, height, aX, aY, w0, w1, h0, h1, index, index2, index3
+    var worldTransform, width, height, aX, aY, w0, w1, h0, h1, index;
 
     var a, b, c, d, tx, ty;
 
     var indexRun = 0;
 
     var displayObject = this.head;
+    var verticies = this.verticies;
+    var uvs = this.uvs;
+    var colors = this.colors;
 
     while(displayObject)
     {
@@ -407,17 +408,17 @@ proto.update = function update()
             tx = worldTransform[2];
             ty = worldTransform[5];
 
-            this.verticies[index + 0 ] = a * w1 + c * h1 + tx;
-            this.verticies[index + 1 ] = d * h1 + b * w1 + ty;
+            verticies[index + 0 ] = a * w1 + c * h1 + tx;
+            verticies[index + 1 ] = d * h1 + b * w1 + ty;
 
-            this.verticies[index + 2 ] = a * w0 + c * h1 + tx;
-            this.verticies[index + 3 ] = d * h1 + b * w0 + ty;
+            verticies[index + 2 ] = a * w0 + c * h1 + tx;
+            verticies[index + 3 ] = d * h1 + b * w0 + ty;
 
-            this.verticies[index + 4 ] = a * w0 + c * h0 + tx;
-            this.verticies[index + 5 ] = d * h0 + b * w0 + ty;
+            verticies[index + 4 ] = a * w0 + c * h0 + tx;
+            verticies[index + 5 ] = d * h0 + b * w0 + ty;
 
-            this.verticies[index + 6] =  a * w1 + c * h0 + tx;
-            this.verticies[index + 7] =  d * h0 + b * w1 + ty;
+            verticies[index + 6] =  a * w1 + c * h0 + tx;
+            verticies[index + 7] =  d * h0 + b * w1 + ty;
 
             if(displayObject.updateFrame || displayObject.texture.updateFrame)
             {
@@ -429,28 +430,28 @@ proto.update = function update()
                 var tw = texture.baseTexture.width;
                 var th = texture.baseTexture.height;
 
-                this.uvs[index + 0] = frame.x / tw;
-                this.uvs[index +1] = frame.y / th;
+                uvs[index + 0] = frame.x / tw;
+                uvs[index +1] = frame.y / th;
 
-                this.uvs[index +2] = (frame.x + frame.width) / tw;
-                this.uvs[index +3] = frame.y / th;
+                uvs[index +2] = (frame.x + frame.width) / tw;
+                uvs[index +3] = frame.y / th;
 
-                this.uvs[index +4] = (frame.x + frame.width) / tw;
-                this.uvs[index +5] = (frame.y + frame.height) / th;
+                uvs[index +4] = (frame.x + frame.width) / tw;
+                uvs[index +5] = (frame.y + frame.height) / th;
 
-                this.uvs[index +6] = frame.x / tw;
-                this.uvs[index +7] = (frame.y + frame.height) / th;
+                uvs[index +6] = frame.x / tw;
+                uvs[index +7] = (frame.y + frame.height) / th;
 
                 displayObject.updateFrame = false;
             }
 
             // TODO this probably could do with some optimisation....
-            if(displayObject.cacheAlpha != displayObject.worldAlpha)
+            if(displayObject.cacheAlpha !== displayObject.worldAlpha)
             {
                 displayObject.cacheAlpha = displayObject.worldAlpha;
 
                 var colorIndex = indexRun * 4;
-                this.colors[colorIndex] = this.colors[colorIndex + 1] = this.colors[colorIndex + 2] = this.colors[colorIndex + 3] = displayObject.worldAlpha;
+                colors[colorIndex] = colors[colorIndex + 1] = colors[colorIndex + 2] = colors[colorIndex + 3] = displayObject.worldAlpha;
                 this.dirtyColors = true;
             }
         }
@@ -458,22 +459,12 @@ proto.update = function update()
         {
             index = indexRun * 8;
 
-            this.verticies[index + 0 ] = 0;
-            this.verticies[index + 1 ] = 0;
-
-            this.verticies[index + 2 ] = 0;
-            this.verticies[index + 3 ] = 0;
-
-            this.verticies[index + 4 ] = 0;
-            this.verticies[index + 5 ] = 0;
-
-            this.verticies[index + 6] = 0;
-            this.verticies[index + 7] = 0;
+            verticies[index + 0 ] = verticies[index + 1 ] = verticies[index + 2 ] = verticies[index + 3 ] = verticies[index + 4 ] = verticies[index + 5 ] = verticies[index + 6] =  verticies[index + 7] = 0;
         }
 
         indexRun++;
         displayObject = displayObject.__next;
-   }
+    }
 };
 
 /**
@@ -500,15 +491,18 @@ proto.render = function render(start, end)
 
     //TODO optimize this!
 
-    var shaderProgram = globals.shaderProgram;
-    gl.useProgram(shaderProgram);
+    var shaderProgram = globals.defaultShader;
+
+    //gl.useProgram(shaderProgram);
 
     // update the verts..
     gl.bindBuffer(gl.ARRAY_BUFFER, this.vertexBuffer);
     // ok..
-    gl.bufferSubData(gl.ARRAY_BUFFER, 0, this.verticies)
-    gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, 2, gl.FLOAT, false, 0, 0);
+    gl.bufferSubData(gl.ARRAY_BUFFER, 0, this.verticies);
+    gl.vertexAttribPointer(shaderProgram.aVertexPosition, 2, gl.FLOAT, false, 0, 0);
     // update the uvs
+    //var isDefault = (shaderProgram == globals.shaderProgram)
+
     gl.bindBuffer(gl.ARRAY_BUFFER, this.uvBuffer);
 
     if(this.dirtyUVS)
@@ -517,7 +511,7 @@ proto.render = function render(start, end)
         gl.bufferSubData(gl.ARRAY_BUFFER,  0, this.uvs);
     }
 
-    gl.vertexAttribPointer(shaderProgram.textureCoordAttribute, 2, gl.FLOAT, false, 0, 0);
+    gl.vertexAttribPointer(shaderProgram.aTextureCoord, 2, gl.FLOAT, false, 0, 0);
 
     gl.activeTexture(gl.TEXTURE0);
     gl.bindTexture(gl.TEXTURE_2D, this.texture._glTexture);
@@ -532,7 +526,6 @@ proto.render = function render(start, end)
     }
 
     gl.vertexAttribPointer(shaderProgram.colorAttribute, 1, gl.FLOAT, false, 0, 0);
-
     // dont need to upload!
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this.indexBuffer);
 

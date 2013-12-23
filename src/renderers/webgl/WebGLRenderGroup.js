@@ -4,9 +4,13 @@
 'use strict';
 
 var globals = require('../../core/globals');
+var shaders = require('./shaders');
 var webglGraphics = require('./graphics');
 var WebGLBatch = require('./WebGLBatch');
+var WebGLFilterManager = require('./WebGLFilterManager');
 var mat3 = require('../../geom/matrix').mat3;
+
+var BaseTexture = require('../../textures/BaseTexture');
 
 var TilingSprite = require('../../extras/TilingSprite');
 var Strip = require('../../extras/Strip');
@@ -28,13 +32,18 @@ var CustomRenderable = require('../../extras/CustomRenderable');
  * @contructor
  * @param gl {WebGLContext} An instance of the webGL context
  */
-function WebGLRenderGroup(gl)
+function WebGLRenderGroup(gl, transparent)
 {
     this.gl = gl;
     this.root = null;
-    // this.backgroundColor = null;
+
+    this.backgroundColor = undefined;
+    this.transparent = transparent === undefined ? true : transparent;
+
     this.batchs = [];
     this.toRemove = [];
+    //console.log(this.transparent);
+    this.filterManager = new WebGLFilterManager(this.transparent);
 }
 
 var proto = WebGLRenderGroup.prototype;
@@ -73,9 +82,12 @@ proto.render = function render(projection)
 
     WebGLRenderGroup.updateTextures(gl);
 
-    gl.uniform2f(globals.shaderProgram.projectionVector, projection.x, projection.y);
-    gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
+    gl.uniform2f(globals.defaultShader.projectionVector, projection.x, projection.y);
 
+    this.filterManager.begin(projection, buffer);
+
+
+    gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
     // will render all the elements in the group
     var renderable;
 
@@ -89,45 +101,8 @@ proto.render = function render(projection)
             continue;
         }
 
-        // non sprite batch..
-        var worldVisible = renderable.vcount === globals.visibleCount;
-
-        if(renderable instanceof TilingSprite)
-        {
-            if(worldVisible)this.renderTilingSprite(renderable, projection);
-        }
-        else if(renderable instanceof Strip)
-        {
-            if(worldVisible)this.renderStrip(renderable, projection);
-        }
-        else if(renderable instanceof Graphics)
-        {
-            if(worldVisible && renderable.renderable) webglGraphics.renderGraphics(renderable, projection);//, projectionMatrix);
-        }
-        else if(renderable instanceof FilterBlock)
-        {
-            /*
-             * for now only masks are supported..
-             */
-            if(renderable.open)
-            {
-                gl.enable(gl.STENCIL_TEST);
-
-                gl.colorMask(false, false, false, false);
-                gl.stencilFunc(gl.ALWAYS,1,0xff);
-                gl.stencilOp(gl.KEEP,gl.KEEP,gl.REPLACE);
-
-                webglGraphics.renderGraphics(renderable.mask, projection);
-
-                gl.colorMask(true, true, true, true);
-                gl.stencilFunc(gl.NOTEQUAL,0,0xff);
-                gl.stencilOp(gl.KEEP,gl.KEEP,gl.KEEP);
-            }
-            else
-            {
-                gl.disable(gl.STENCIL_TEST);
-            }
-        }
+        // render special
+        this.renderSpecial(renderable, projection);
     }
 };
 
@@ -157,14 +132,21 @@ proto.renderSpecific = function renderSpecific(displayObject, projection)
 
     WebGLRenderGroup.updateTextures(gl);
 
-    gl.uniform2f(globals.shaderProgram.projectionVector, projection.x, projection.y);
+    gl.uniform2f(globals.defaultShader.projectionVector, projection.x, projection.y);
+
+    this.filterManager.begin(projection, buffer);
 
     // to do!
     // render part of the scene...
 
-    var startIndex, startBatchIndex,
-        endIndex, endBatchIndex,
-        head, next;
+    var startIndex;
+    var startBatchIndex;
+
+    var endIndex;
+    var endBatchIndex;
+    var endBatch;
+
+    var head;
 
     /*
      *  LOOK FOR THE NEXT SPRITE
@@ -175,8 +157,8 @@ proto.renderSpecific = function renderSpecific(displayObject, projection)
     var nextRenderable = displayObject.first;
     while(nextRenderable._iNext)
     {
-        nextRenderable = nextRenderable._iNext;
         if(nextRenderable.renderable && nextRenderable.__renderGroup)break;
+        nextRenderable = nextRenderable._iNext;
     }
     var startBatch = nextRenderable.batch;
 
@@ -185,10 +167,9 @@ proto.renderSpecific = function renderSpecific(displayObject, projection)
         startBatch = nextRenderable.batch;
 
         head = startBatch.head;
-        next = head;
 
         // ok now we have the batch.. need to find the start index!
-        if(head == nextRenderable)
+        if(head === nextRenderable)
         {
             startIndex = 0;
         }
@@ -196,7 +177,7 @@ proto.renderSpecific = function renderSpecific(displayObject, projection)
         {
             startIndex = 1;
 
-            while(head.__next != nextRenderable)
+            while(head.__next !== nextRenderable)
             {
                 startIndex++;
                 head = head.__next;
@@ -209,13 +190,11 @@ proto.renderSpecific = function renderSpecific(displayObject, projection)
     }
 
     // Get the LAST renderable object
-    var lastRenderable = displayObject;
-    var endBatch;
-    var lastItem = displayObject;
-    while(lastItem.children.length > 0)
+    var lastRenderable = displayObject.last;
+    while(lastRenderable._iPrev)
     {
-        lastItem = lastItem.children[lastItem.children.length-1];
-        if(lastItem.renderable)lastRenderable = lastItem;
+        if(lastRenderable.renderable && lastRenderable.__renderGroup)break;
+        lastRenderable = lastRenderable._iNext;
     }
 
     if(lastRenderable instanceof Sprite)
@@ -224,7 +203,7 @@ proto.renderSpecific = function renderSpecific(displayObject, projection)
 
         head = endBatch.head;
 
-        if(head == lastRenderable)
+        if(head === lastRenderable)
         {
             endIndex = 0;
         }
@@ -232,7 +211,7 @@ proto.renderSpecific = function renderSpecific(displayObject, projection)
         {
             endIndex = 1;
 
-            while(head.__next != lastRenderable)
+            while(head.__next !== lastRenderable)
             {
                 endIndex++;
                 head = head.__next;
@@ -246,7 +225,7 @@ proto.renderSpecific = function renderSpecific(displayObject, projection)
 
     // TODO - need to fold this up a bit!
 
-    if(startBatch == endBatch)
+    if(startBatch === endBatch)
     {
         if(startBatch instanceof WebGLBatch)
         {
@@ -275,7 +254,7 @@ proto.renderSpecific = function renderSpecific(displayObject, projection)
 
     // DO the middle batchs..
     var renderable;
-    for (var i=startBatchIndex+1; i < endBatchIndex; i++)
+    for (var i = startBatchIndex+1; i < endBatchIndex; i++)
     {
         renderable = this.batchs[i];
 
@@ -330,28 +309,69 @@ proto.renderSpecial = function renderSpecial(renderable, projection)
     }
     else if(renderable instanceof FilterBlock)
     {
-        /*
-         * for now only masks are supported..
-         */
-        var gl = this.gl;
+        this.handleFilterBlock(renderable, projection);
+    }
+};
 
-        if(renderable.open)
+var maskStack = [];
+
+proto.handleFilterBlock = function handleFilterBlock(filterBlock, projection)
+{
+    /*
+     * for now only masks are supported..
+     */
+    var gl = globals.gl;
+
+    if(filterBlock.open)
+    {
+        if(filterBlock.data instanceof Array)
         {
-            gl.enable(gl.STENCIL_TEST);
+            this.filterManager.pushFilter(filterBlock);
+            // ok so..
 
-            gl.colorMask(false, false, false, false);
-            gl.stencilFunc(gl.ALWAYS,1,0xff);
-            gl.stencilOp(gl.KEEP,gl.KEEP,gl.REPLACE);
-
-            webglGraphics.renderGraphics(renderable.mask, projection);
-
-            // we know this is a render texture so enable alpha too..
-            gl.colorMask(true, true, true, true);
-            gl.stencilFunc(gl.NOTEQUAL,0,0xff);
-            gl.stencilOp(gl.KEEP,gl.KEEP,gl.KEEP);
         }
         else
         {
+            maskStack.push(filterBlock);
+
+            gl.enable(gl.STENCIL_TEST);
+
+            gl.colorMask(false, false, false, false);
+
+            gl.stencilFunc(gl.ALWAYS,1,1);
+            gl.stencilOp(gl.KEEP,gl.KEEP,gl.INCR);
+
+            webglGraphics.renderGraphics(filterBlock.data, projection);
+
+            gl.colorMask(true, true, true, true);
+            gl.stencilFunc(gl.NOTEQUAL,0,maskStack.length);
+            gl.stencilOp(gl.KEEP,gl.KEEP,gl.KEEP);
+        }
+    }
+    else
+    {
+        if(filterBlock.data instanceof Array)
+        {
+            this.filterManager.popFilter();
+        }
+        else
+        {
+            var maskData = maskStack.pop(filterBlock);
+
+            if(maskData)
+            {
+                gl.colorMask(false, false, false, false);
+
+                gl.stencilFunc(gl.ALWAYS,1,1);
+                gl.stencilOp(gl.KEEP,gl.KEEP,gl.DECR);
+
+                webglGraphics.renderGraphics(maskData.data, projection);
+
+                gl.colorMask(true, true, true, true);
+                gl.stencilFunc(gl.NOTEQUAL,0,maskStack.length);
+                gl.stencilOp(gl.KEEP,gl.KEEP,gl.KEEP);
+            }
+
             gl.disable(gl.STENCIL_TEST);
         }
     }
@@ -377,7 +397,7 @@ proto.updateTexture = function updateTexture(displayObject)
      *  It keeps going back until it finds a sprite or the stage
      */
     var previousRenderable = displayObject.first;
-    while(previousRenderable != this.root)
+    while(previousRenderable !== this.root)
     {
         previousRenderable = previousRenderable._iPrev;
         if(previousRenderable.renderable && previousRenderable.__renderGroup)break;
@@ -417,7 +437,7 @@ proto.addFilterBlocks = function addFilterBlocks(start, end)
      *  It keeps going back until it finds a sprite or the stage
      */
     var previousRenderable = start;
-    while(previousRenderable != this.root)
+    while(previousRenderable !== this.root.first)
     {
         previousRenderable = previousRenderable._iPrev;
         if(previousRenderable.renderable && previousRenderable.__renderGroup)break;
@@ -431,7 +451,7 @@ proto.addFilterBlocks = function addFilterBlocks(start, end)
      *  scene graph
      */
     var previousRenderable2 = end;
-    while(previousRenderable2 != this.root)
+    while(previousRenderable2 !== this.root.first)
     {
         previousRenderable2 = previousRenderable2._iPrev;
         if(previousRenderable2.renderable && previousRenderable2.__renderGroup)break;
@@ -471,7 +491,7 @@ proto.addDisplayObjectAndChildren = function addDisplayObjectAndChildren(display
      */
 
     var previousRenderable = displayObject.first;
-    while(previousRenderable != this.root.first)
+    while(previousRenderable !== this.root.first)
     {
         previousRenderable = previousRenderable._iPrev;
         if(previousRenderable.renderable && previousRenderable.__renderGroup)break;
@@ -494,6 +514,7 @@ proto.addDisplayObjectAndChildren = function addDisplayObjectAndChildren(display
 
     var tempObject = displayObject.first;
     var testObject = displayObject.last._iNext;
+
     do
     {
         tempObject.__renderGroup = this;
@@ -507,7 +528,7 @@ proto.addDisplayObjectAndChildren = function addDisplayObjectAndChildren(display
 
         tempObject = tempObject._iNext;
     }
-    while(tempObject != testObject)
+    while(tempObject !== testObject);
 };
 
 /**
@@ -519,17 +540,15 @@ proto.addDisplayObjectAndChildren = function addDisplayObjectAndChildren(display
  */
 proto.removeDisplayObjectAndChildren = function removeDisplayObjectAndChildren(displayObject)
 {
-    if(displayObject.__renderGroup != this)return;
+    if(displayObject.__renderGroup !== this) return;
 
-//  var displayObject = displayObject.first;
-    var lastObject = displayObject.last;
     do
     {
         displayObject.__renderGroup = null;
         if(displayObject.renderable)this.removeObject(displayObject);
         displayObject = displayObject._iNext;
     }
-    while(displayObject)
+    while(displayObject);
 };
 
 /**
@@ -561,7 +580,7 @@ proto.insertObject = function insertObject(displayObject, previousObject, nextOb
             previousBatch = previousSprite.batch;
             if(previousBatch)
             {
-                if(previousBatch.texture == displayObject.texture.baseTexture && previousBatch.blendMode == displayObject.blendMode)
+                if(previousBatch.texture === displayObject.texture.baseTexture && previousBatch.blendMode === displayObject.blendMode)
                 {
                     previousBatch.insertAfter(displayObject, previousSprite);
                     return;
@@ -583,14 +602,14 @@ proto.insertObject = function insertObject(displayObject, previousObject, nextOb
                 //batch may not exist if item was added to the display list but not to the webGL
                 if(nextBatch)
                 {
-                    if(nextBatch.texture == displayObject.texture.baseTexture && nextBatch.blendMode == displayObject.blendMode)
+                    if(nextBatch.texture === displayObject.texture.baseTexture && nextBatch.blendMode === displayObject.blendMode)
                     {
                         nextBatch.insertBefore(displayObject, nextSprite);
                         return;
                     }
                     else
                     {
-                        if(nextBatch == previousBatch)
+                        if(nextBatch === previousBatch)
                         {
                             // THERE IS A SPLIT IN THIS BATCH! //
                             var splitBatch = previousBatch.split(nextSprite);
@@ -655,14 +674,16 @@ proto.insertObject = function insertObject(displayObject, previousObject, nextOb
         this.initStrip(displayObject);
     //  this.batchs.push(displayObject);
     }
-    /*else if(displayObject)// instanceof Graphics)
+    /*
+    else if(displayObject)// instanceof Graphics)
     {
         //displayObject.initWebGL(this);
 
         // add to a batch!!
         //this.initStrip(displayObject);
         //this.batchs.push(displayObject);
-    }*/
+    }
+    */
 
     this.insertAfter(displayObject, previousSprite);
 
@@ -690,7 +711,7 @@ proto.insertAfter = function insertAfter(item, displayObject)
             // so this object is in a batch!
 
             // is it not? need to split the batch
-            if(previousBatch.tail == displayObject)
+            if(previousBatch.tail === displayObject)
             {
                 // is it tail? insert in to batchs
                 index = this.batchs.indexOf( previousBatch );
@@ -711,7 +732,7 @@ proto.insertAfter = function insertAfter(item, displayObject)
                  * lets split it..
                  */
                 index = this.batchs.indexOf( previousBatch );
-                this.batchs.splice(index + 1, 0, item, splitBatch);
+                this.batchs.splice(index+1, 0, item, splitBatch);
             }
         }
         else
@@ -722,7 +743,7 @@ proto.insertAfter = function insertAfter(item, displayObject)
     else
     {
         index = this.batchs.indexOf( displayObject );
-        this.batchs.splice(index + 1, 0, item);
+        this.batchs.splice(index+1, 0, item);
     }
 };
 
@@ -772,39 +793,35 @@ proto.removeObject = function removeObject(displayObject)
     if(batchToRemove)
     {
         index = this.batchs.indexOf( batchToRemove );
-        if (index === -1) return;// this means it was added then removed before rendered
+        if(index === -1)return;// this means it was added then removed before rendered
 
         // ok so.. check to see if you adjacent batchs should be joined.
         // TODO may optimise?
-        if (index === 0 || index === this.batchs.length - 1)
+        if(index === 0 || index === this.batchs.length-1)
         {
             // wha - eva! just get of the empty batch!
             this.batchs.splice(index, 1);
-            if (batchToRemove instanceof WebGLBatch)
-                WebGLBatch.returnBatch(batchToRemove);
+            if(batchToRemove instanceof WebGLBatch)WebGLBatch.returnBatch(batchToRemove);
 
             return;
         }
 
-        if(this.batchs[index - 1] instanceof WebGLBatch && this.batchs[index + 1] instanceof WebGLBatch)
+        if(this.batchs[index-1] instanceof WebGLBatch && this.batchs[index+1] instanceof WebGLBatch)
         {
-            if(this.batchs[index - 1].texture == this.batchs[index + 1].texture && this.batchs[index - 1].blendMode == this.batchs[index + 1].blendMode)
+            if(this.batchs[index-1].texture === this.batchs[index+1].texture && this.batchs[index-1].blendMode === this.batchs[index+1].blendMode)
             {
                 //console.log("MERGE")
-                this.batchs[index - 1].merge(this.batchs[index + 1]);
+                this.batchs[index-1].merge(this.batchs[index+1]);
 
-                if (batchToRemove instanceof WebGLBatch)
-                    WebGLBatch.returnBatch(batchToRemove);
-
-                WebGLBatch.returnBatch(this.batchs[index + 1]);
+                if(batchToRemove instanceof WebGLBatch)WebGLBatch.returnBatch(batchToRemove);
+                WebGLBatch.returnBatch(this.batchs[index+1]);
                 this.batchs.splice(index, 2);
                 return;
             }
         }
 
         this.batchs.splice(index, 1);
-        if (batchToRemove instanceof WebGLBatch)
-            WebGLBatch.returnBatch(batchToRemove);
+        if(batchToRemove instanceof WebGLBatch)WebGLRenderer.returnBatch(batchToRemove);
     }
 };
 
@@ -833,7 +850,7 @@ proto.initTilingSprite = function initTilingSprite(sprite)
 
     sprite.colors = new Float32Array([1,1,1,1]);
 
-    sprite.indices =  new Uint16Array([0, 1, 3,2])//, 2]);
+    sprite.indices =  new Uint16Array([0, 1, 3,2]); //, 2]);
 
     sprite._vertexBuffer = gl.createBuffer();
     sprite._indexBuffer = gl.createBuffer();
@@ -878,25 +895,23 @@ proto.initTilingSprite = function initTilingSprite(sprite)
 proto.renderStrip = function renderStrip(strip, projection)
 {
     var gl = this.gl;
-    var shaderProgram = globals.shaderProgram;
-//  mat
-    //var mat4Real = mat3.toMat4(strip.worldTransform);
-    //mat4.transpose(mat4Real);
-    //mat4.multiply(projectionMatrix, mat4Real, mat4Real )
 
+    shaders.activateStripShader();
 
-    gl.useProgram(globals.stripShaderProgram);
+    var shader = globals.stripShader;
 
     var m = mat3.clone(strip.worldTransform);
 
     mat3.transpose(m);
 
     // set the matrix transform for the
-    gl.uniformMatrix3fv(globals.stripShaderProgram.translationMatrix, false, m);
-    gl.uniform2f(globals.stripShaderProgram.projectionVector, projection.x, projection.y);
-    gl.uniform1f(globals.stripShaderProgram.alpha, strip.worldAlpha);
+    gl.uniformMatrix3fv(shader.translationMatrix, false, m);
+    gl.uniform2f(shader.projectionVector, projection.x, projection.y);
+    gl.uniform2f(shader.offsetVector, -globals.offset.x, -globals.offset.y);
 
-/*
+    gl.uniform1f(shader.alpha, strip.worldAlpha);
+
+    /*
     if(strip.blendMode == blendModes.NORMAL)
     {
         gl.blendFunc(gl.ONE, gl.ONE_MINUS_SRC_ALPHA);
@@ -910,20 +925,19 @@ proto.renderStrip = function renderStrip(strip, projection)
 
     if(!strip.dirty)
     {
-
         gl.bindBuffer(gl.ARRAY_BUFFER, strip._vertexBuffer);
-        gl.bufferSubData(gl.ARRAY_BUFFER, 0, strip.verticies)
-        gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, 2, gl.FLOAT, false, 0, 0);
+        gl.bufferSubData(gl.ARRAY_BUFFER, 0, strip.verticies);
+        gl.vertexAttribPointer(shader.aVertexPosition, 2, gl.FLOAT, false, 0, 0);
 
         // update the uvs
         gl.bindBuffer(gl.ARRAY_BUFFER, strip._uvBuffer);
-        gl.vertexAttribPointer(shaderProgram.textureCoordAttribute, 2, gl.FLOAT, false, 0, 0);
+        gl.vertexAttribPointer(shader.aTextureCoord, 2, gl.FLOAT, false, 0, 0);
 
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D, strip.texture.baseTexture._glTexture);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, strip._colorBuffer);
-        gl.vertexAttribPointer(shaderProgram.colorAttribute, 1, gl.FLOAT, false, 0, 0);
+        gl.vertexAttribPointer(shader.colorAttribute, 1, gl.FLOAT, false, 0, 0);
 
         // dont need to upload!
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, strip._indexBuffer);
@@ -932,31 +946,30 @@ proto.renderStrip = function renderStrip(strip, projection)
     {
         strip.dirty = false;
         gl.bindBuffer(gl.ARRAY_BUFFER, strip._vertexBuffer);
-        gl.bufferData(gl.ARRAY_BUFFER, strip.verticies, gl.STATIC_DRAW)
-        gl.vertexAttribPointer(shaderProgram.vertexPositionAttribute, 2, gl.FLOAT, false, 0, 0);
+        gl.bufferData(gl.ARRAY_BUFFER, strip.verticies, gl.STATIC_DRAW);
+        gl.vertexAttribPointer(shader.aVertexPosition, 2, gl.FLOAT, false, 0, 0);
 
         // update the uvs
         gl.bindBuffer(gl.ARRAY_BUFFER, strip._uvBuffer);
-        gl.bufferData(gl.ARRAY_BUFFER, strip.uvs, gl.STATIC_DRAW)
-        gl.vertexAttribPointer(shaderProgram.textureCoordAttribute, 2, gl.FLOAT, false, 0, 0);
+        gl.bufferData(gl.ARRAY_BUFFER, strip.uvs, gl.STATIC_DRAW);
+        gl.vertexAttribPointer(shader.aTextureCoord, 2, gl.FLOAT, false, 0, 0);
 
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D, strip.texture.baseTexture._glTexture);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, strip._colorBuffer);
-        gl.bufferData(gl.ARRAY_BUFFER, strip.colors, gl.STATIC_DRAW)
-        gl.vertexAttribPointer(shaderProgram.colorAttribute, 1, gl.FLOAT, false, 0, 0);
+        gl.bufferData(gl.ARRAY_BUFFER, strip.colors, gl.STATIC_DRAW);
+        gl.vertexAttribPointer(shader.colorAttribute, 1, gl.FLOAT, false, 0, 0);
 
         // dont need to upload!
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, strip._indexBuffer);
         gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, strip.indices, gl.STATIC_DRAW);
 
     }
-    //console.log(gl.TRIANGLE_STRIP);
 
     gl.drawElements(gl.TRIANGLE_STRIP, strip.indices.length, gl.UNSIGNED_SHORT, 0);
 
-    gl.useProgram(globals.shaderProgram);
+    shaders.deactivateStripShader();
 };
 
 /**
@@ -970,7 +983,6 @@ proto.renderStrip = function renderStrip(strip, projection)
 proto.renderTilingSprite = function renderTilingSprite(sprite, projectionMatrix)
 {
     var gl = this.gl;
-    var shaderProgram = globals.shaderProgram;
 
     var tilePosition = sprite.tilePosition;
     var tileScale = sprite.tileScale;
@@ -994,7 +1006,7 @@ proto.renderTilingSprite = function renderTilingSprite(sprite, projectionMatrix)
     sprite.uvs[7] = (1 *scaleY) - offsetY;
 
     gl.bindBuffer(gl.ARRAY_BUFFER, sprite._uvBuffer);
-    gl.bufferSubData(gl.ARRAY_BUFFER, 0, sprite.uvs)
+    gl.bufferSubData(gl.ARRAY_BUFFER, 0, sprite.uvs);
 
     this.renderStrip(sprite, projectionMatrix);
 };
@@ -1010,7 +1022,6 @@ proto.initStrip = function initStrip(strip)
 {
     // build the strip!
     var gl = this.gl;
-    var shaderProgram = this.shaderProgram;
 
     strip._vertexBuffer = gl.createBuffer();
     strip._indexBuffer = gl.createBuffer();
@@ -1053,8 +1064,8 @@ WebGLRenderGroup.updateTexture = function updateTexture(gl, texture)
         gl.pixelStorei(gl.UNPACK_PREMULTIPLY_ALPHA_WEBGL, true);
 
         gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, texture.source);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, texture.scaleMode === BaseTexture.SCALE_MODE.LINEAR ? gl.LINEAR : gl.NEAREST);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, texture.scaleMode === BaseTexture.SCALE_MODE.LINEAR ? gl.LINEAR : gl.NEAREST);
 
         // reguler...
 

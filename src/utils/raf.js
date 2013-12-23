@@ -19,26 +19,27 @@ module.exports = (function () {
      */
     var lastTime = 0;
     var vendors = ['ms', 'moz', 'webkit', 'o'];
-
-    for(var i = 0; i < vendors.length && !global.requestAnimationFrame; i++) {
-        global.requestAnimationFrame = global[vendors[i]+'RequestAnimationFrame'];
-        global.cancelAnimationFrame = global[vendors[i]+'CancelAnimationFrame'] ||
-            global[vendors[i]+'CancelRequestAnimationFrame'];
+    for(var i = 0; i < vendors.length && !global.requestAnimationFrame; ++i) {
+        global.requestAnimationFrame = global[vendors[i] + 'RequestAnimationFrame'];
+        global.cancelAnimationFrame = global[vendors[i] + 'CancelAnimationFrame'] ||
+            global[vendors[i] + 'CancelRequestAnimationFrame'];
     }
 
-    if (!global.requestAnimationFrame)
-        global.requestAnimationFrame = function(callback, element) {
-            var currTime = Date.now();
+    if (!global.requestAnimationFrame) {
+        global.requestAnimationFrame = function(callback) {
+            var currTime = new Date().getTime();
             var timeToCall = Math.max(0, 16 - (currTime - lastTime));
-            var id = setTimeout(function() { callback(currTime + timeToCall); }, timeToCall);
+            var id = global.setTimeout(function() { callback(currTime + timeToCall); }, timeToCall);
             lastTime = currTime + timeToCall;
             return id;
         };
+    }
 
-    if (!global.cancelAnimationFrame)
+    if (!global.cancelAnimationFrame) {
         global.cancelAnimationFrame = function(id) {
             clearTimeout(id);
         };
+    }
 
     return global.requestAnimationFrame;
 
