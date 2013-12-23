@@ -1,7 +1,7 @@
 <!DOCTYPE HTML>
 <html>
 <head>
-	<title>pixi.js example 14 - Masking</title>
+	<title>pixi.js example 15 - Filters</title>
 	<style>
 		body {
 			margin: 0;
@@ -15,6 +15,8 @@
 <body>
 	<script>
 
+	var renderer = PIXI.autoDetectRenderer(620, 380);
+
 	// create an new instance of a pixi stage
 	var stage = new PIXI.Stage(0xFFFFFF, true);
 
@@ -27,7 +29,13 @@
 	bg.position.x = 620/2;
 	bg.position.y = 380/2;
 
-	stage.addChild(bg);
+	var colorMatrix =  [1,0,0,0,
+						0,1,0,0,
+						0,0,1,0,
+						0,0,0,1];
+
+
+	var filter = new PIXI.ColorMatrixFilter();
 
 	var container = new PIXI.DisplayObjectContainer();
 	container.position.x = 620/2;
@@ -53,57 +61,52 @@
 	panda.anchor.x = 0.5;
 	panda.anchor.y = 0.5;
 
+
 	container.addChild(panda);
 
 	stage.addChild(container);
 
 	// create a renderer instance
-	var renderer = PIXI.autoDetectRenderer(620, 380);
 
 	renderer.view.style.position = "absolute"
-	renderer.view.style.marginLeft = "-310px";
-	renderer.view.style.marginTop = "-190px";
-	renderer.view.style.top = "50%";
-	renderer.view.style.left = "50%";
+	renderer.view.style.width = window.innerWidth + "px";
+	renderer.view.style.height = window.innerHeight + "px";
 	renderer.view.style.display = "block";
 
 	// add render view to DOM
 	document.body.appendChild(renderer.view);
 
-	// lets create moving shape
-	var thing = new PIXI.Graphics();
-	stage.addChild(thing);
-	thing.position.x = 620/2;
-	thing.position.y = 380/2;
-	thing.lineStyle(0);
 
-	container.mask = thing;
+	stage.filters = [filter];
 
 	var count = 0;
+	var switchy = false;
 
 	stage.click = stage.tap = function()
 	{
-		if(!container.mask)
+		switchy = !switchy
+
+		if(!switchy)
 		{
-			container.mask = thing;
-			PIXI.runList(stage);
+			stage.filters = [filter];
 		}
 		else
 		{
-			container.mask = null;
+			stage.filters = null;
 		}
+
 	}
 
 	/*
 	 * Add a pixi Logo!
 	 */
 	var logo = PIXI.Sprite.fromImage("../../logo_small.png")
-	stage.addChild(logo);
+//	stage.addChild(logo);
 
 	logo.anchor.x = 1;
 	logo.position.x = 620
 	logo.scale.x = logo.scale.y = 0.5;
-	logo.position.y = 320
+	logo.position.y = 320;
 	logo.interactive = true;
 	logo.buttonMode = true;
 
@@ -112,10 +115,14 @@
 		window.open("https://github.com/GoodBoyDigital/pixi.js", "_blank")
 	}
 
-	var help = new PIXI.Text("Click to turn masking on / off.", {font:"bold 12pt Arial", fill:"white"});
+	var help = new PIXI.Text("Click to turn filters on / off.", {font:"bold 12pt Arial", fill:"white"});
 	help.position.y = 350;
 	help.position.x = 10;
 	stage.addChild(help);
+
+	//stage.filters = [filter];
+
+	PIXI.runList(stage);
 
 	requestAnimFrame(animate);
 
@@ -132,17 +139,14 @@
 
 		count += 0.1;
 
-		thing.clear();
+		colorMatrix[1] = Math.sin(count) * 3;
+		colorMatrix[2] = Math.cos(count);
+		colorMatrix[3] = Math.cos(count) * 1.5;
+		colorMatrix[4] = Math.sin(count/3) * 2;
+		colorMatrix[5] = Math.sin(count/2);
+		colorMatrix[6] = Math.sin(count/4);
+		filter.matrix = colorMatrix;
 
-		thing.beginFill(0x8bc5ff, 0.4);
-		thing.moveTo(-120 + Math.sin(count) * 20, -100 + Math.cos(count)* 20);
-		thing.lineTo(120 + Math.cos(count) * 20, -100 + Math.sin(count)* 20);
-		thing.lineTo(120 + Math.sin(count) * 20, 100 + Math.cos(count)* 20);
-		thing.lineTo(-120 + Math.cos(count)* 20, 100 + Math.sin(count)* 20);
-		thing.lineTo(-120 + Math.sin(count) * 20, -100 + Math.cos(count)* 20);
-		thing.rotation = count * 0.1;
-
-		//var mask1 = new PIXI.Graphics();
 
 
 	    renderer.render(stage);
