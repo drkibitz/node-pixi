@@ -36,6 +36,7 @@ This content is released under the (http://opensource.org/licenses/MIT) MIT Lice
 - [Spine](http://drkibitz.github.io/node-pixi/example/12-spine/)
 - [Graphics](http://drkibitz.github.io/node-pixi/example/13-graphics/)
 - [Masking](http://drkibitz.github.io/node-pixi/example/14-masking/)
+- [Filters](http://drkibitz.github.io/node-pixi/example/15-filters/)
 
 ## Install
 
