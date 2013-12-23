@@ -139,7 +139,7 @@ function DisplayObject()
      * @readOnly
      * @private
      */
-    this.worldTransform = mat3.create()//mat3.identity();
+    this.worldTransform = mat3.create();//mat3.identity();
 
     /**
      * [read-only] Current transform of the object locally
@@ -149,7 +149,7 @@ function DisplayObject()
      * @readOnly
      * @private
      */
-    this.localTransform = mat3.create()//mat3.identity();
+    this.localTransform = mat3.create();//mat3.identity();
 
     /**
      * [NYI] Unkown
@@ -250,6 +250,19 @@ function DisplayObject()
      */
 }
 var proto = DisplayObject.prototype;
+
+/**
+ * [Deprecated] Indicates if the sprite will have touch and mouse interactivity. It is false by default
+ * Instead of using this function you can now simply set the interactive property to true or false
+ *
+ * @method setInteractive
+ * @param interactive {Boolean}
+ * @deprecated Simply set the `interactive` property directly
+ */
+proto.setInteractive = function(interactive)
+{
+    this.interactive = interactive;
+};
 
 /**
  * Indicates if the sprite will have touch and mouse interactivity. It is false by default
@@ -366,7 +379,7 @@ proto.addFilter = function addFilter(data)
 
 
     // insert a filter block..
-    // TODO Onject pool thease bad boys..
+    // TODO Onject pool these bad boys..
     var start = new FilterBlock();
     var end = new FilterBlock();
 

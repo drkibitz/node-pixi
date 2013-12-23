@@ -80,7 +80,7 @@ var proto = Texture.prototype;
  * @param event
  * @private
  */
-proto.onBaseTextureLoaded = function onBaseTextureLoaded(event)
+proto.onBaseTextureLoaded = function onBaseTextureLoaded()/*(event)*/
 {
     var baseTexture = this.baseTexture;
     baseTexture.removeEventListener( 'loaded', this.onLoaded );

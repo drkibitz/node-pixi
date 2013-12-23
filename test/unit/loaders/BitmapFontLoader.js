@@ -4,6 +4,6 @@ describe('loaders/BitmapFontLoader', function () {
     var BitmapFontLoader = PIXI.BitmapFontLoader;
 
     it('Module exists', function () {
-        expect(PIXI.BitmapFontLoader).to.be.a('function');
+        expect(BitmapFontLoader).to.be.a('function');
     });
 });

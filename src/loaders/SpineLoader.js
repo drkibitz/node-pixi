@@ -69,7 +69,7 @@ proto.load = function load()
 {
     var scope = this;
     var jsonLoader = new JsonLoader(this.url, this.crossorigin);
-    jsonLoader.addEventListener("loaded", function (event) {
+    jsonLoader.addEventListener('loaded', function (event) {
         scope.json = event.content.json;
         scope.onJSONLoaded();
     });
@@ -82,7 +82,7 @@ proto.load = function load()
  * @method onJSONLoaded
  * @private
  */
-proto.onJSONLoaded = function onJSONLoaded(event)
+proto.onJSONLoaded = function onJSONLoaded()
 {
     var spineJsonParser = new SkeletonJson();
     var skeletonData = spineJsonParser.readSkeletonData(this.json);
@@ -101,7 +101,7 @@ proto.onJSONLoaded = function onJSONLoaded(event)
 proto.onLoaded = function onLoaded()
 {
     this.loaded = true;
-    this.dispatchEvent({type: "loaded", content: this});
+    this.dispatchEvent({type: 'loaded', content: this});
 };
 
 AssetLoader.registerLoaderType('anim', SpineLoader);

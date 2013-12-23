@@ -76,7 +76,7 @@ proto.setRenderable = function setRenderable(displayObject)
  * @method render
  * @param projection {Object}
  */
-proto.render = function render(projection)
+proto.render = function render(projection, buffer)
 {
     var gl = this.gl;
 
@@ -113,7 +113,7 @@ proto.render = function render(projection)
  * @param filter {FilterBlock}
  * @private
  */
-proto.handleFilter = function handleFilter(filter, projection)
+proto.handleFilter = function handleFilter()/*(filter, projection)*/
 {
 
 };
@@ -126,7 +126,7 @@ proto.handleFilter = function handleFilter(filter, projection)
  * @param projection {Object}
  * @private
  */
-proto.renderSpecific = function renderSpecific(displayObject, projection)
+proto.renderSpecific = function renderSpecific(displayObject, projection, buffer)
 {
     var gl = this.gl;
 
@@ -821,7 +821,7 @@ proto.removeObject = function removeObject(displayObject)
         }
 
         this.batchs.splice(index, 1);
-        if(batchToRemove instanceof WebGLBatch)WebGLRenderer.returnBatch(batchToRemove);
+        if(batchToRemove instanceof WebGLBatch)WebGLBatch.returnBatch(batchToRemove);
     }
 };
 

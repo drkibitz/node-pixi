@@ -67,7 +67,8 @@ function WebGLRenderer(width, height, view, transparent, antialias)
             throw new Error(' This browser does not support webGL. Try using the canvas renderer' + this);
         }
     }
-    this.gl = gl;
+    // TODO remove this global..
+    this.gl = globals.gl = gl;
 
     shaders.initDefaultShaders();
 
@@ -80,19 +81,15 @@ function WebGLRenderer(width, height, view, transparent, antialias)
     gl.enable(gl.BLEND);
     gl.colorMask(true, true, true, this.transparent);
 
-    this.projection = new Point(400, 300);
-    this.offest = new Point(0, 0);
+    // TODO remove these globals..
+    this.projection = globals.projection = new Point(400, 300);
+    this.offset = globals.offset = new Point(0, 0);
 
     this.resize(this.width, this.height);
     this.contextLost = false;
 
     this.stageRenderGroup = new WebGLRenderGroup(this.gl, this.transparent);
-
-    // TODO remove thease globals..
-    globals.gl = gl;
-    globals.projection = this.projection;
-    globals.offset = this.offset;
-};
+}
 
 var proto = WebGLRenderer.prototype;
 
@@ -215,7 +212,7 @@ proto.handleContextLost = function handleContextLost(event)
  * @param event {Event}
  * @private
  */
-proto.handleContextRestored = function handleContextRestored(event)
+proto.handleContextRestored = function handleContextRestored()/*(event)*/
 {
     var gl = this.gl = this.view.getContext('experimental-webgl',  {
         alpha: true
@@ -232,7 +229,7 @@ proto.handleContextRestored = function handleContextRestored(event)
 
     for (var i = 0, l = this.batchs.length; i < l; i++)
     {
-        this.batchs[i].restoreLostContext(gl)//
+        this.batchs[i].restoreLostContext(gl);
         this.batchs[i].dirty = true;
     }
 

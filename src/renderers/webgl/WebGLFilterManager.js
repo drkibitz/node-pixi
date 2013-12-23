@@ -4,9 +4,44 @@
 'use strict';
 
 var globals = require('../../core/globals');
+var Sprite = require('../../display/Sprite');
+var Graphics = require('../../primitives/Graphics');
 var PixiShader = require('./PixiShader');
-var Sprite = require('./../display/Sprite');
-var Graphics = require('../primitives/Graphics');
+
+function FilterTexture(width, height)
+{
+    var gl = globals.gl;
+
+    // next time to create a frame buffer and texture
+    this.frameBuffer = gl.createFramebuffer();
+    this.texture = gl.createTexture();
+
+    gl.bindTexture(gl.TEXTURE_2D,  this.texture);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.bindFramebuffer(gl.FRAMEBUFFER, this.framebuffer );
+
+    gl.bindFramebuffer(gl.FRAMEBUFFER, this.frameBuffer );
+    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.texture, 0);
+
+    this.resize(width, height);
+}
+
+FilterTexture.prototype.resize = function resize(width, height)
+{
+    if(this.width === width && this.height === height) return;
+
+    this.width = width;
+    this.height = height;
+
+    var gl = globals.gl;
+
+    gl.bindTexture(gl.TEXTURE_2D,  this.texture);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA,  width, height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
+
+};
 
 function WebGLFilterManager(transparent)
 {
@@ -83,7 +118,7 @@ proto.pushFilter = function pushFilter(filterBlock)
     // set view port
     gl.viewport(0, 0, filterArea.width, filterArea.height);
 
-    // TODO need to remove thease global elements..
+    // TODO need to remove these global elements..
     globals.projection.x = filterArea.width/2;
     globals.projection.y = -filterArea.height/2;
 
@@ -214,7 +249,7 @@ proto.popFilter = function popFilter()
 
 
 
-    // TODO need to remove thease global elements..
+    // TODO need to remove these global elements..
     globals.projection.x = sizeX/2;
     globals.projection.y = -sizeY/2;
 
@@ -283,7 +318,7 @@ proto.applyFilterPass = function applyFilterPass(filter, filterArea, width, heig
 
     if(!shader)
     {
-        shader = new globals.PixiShader();
+        shader = new PixiShader();
 
         shader.fragmentSrc = filter.fragmentSrc;
         shader.uniforms = filter.uniforms;
@@ -481,41 +516,6 @@ proto.getBounds = function getBounds(displayObject)
 //  console.log(maxX+ " : " + minX)
     displayObject.filterArea.width = maxX - minX;
     displayObject.filterArea.height = maxY - minY;
-};
-
-function FilterTexture(width, height)
-{
-    var gl = globals.gl;
-
-    // next time to create a frame buffer and texture
-    this.frameBuffer = gl.createFramebuffer();
-    this.texture = gl.createTexture();
-
-    gl.bindTexture(gl.TEXTURE_2D,  this.texture);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-    gl.bindFramebuffer(gl.FRAMEBUFFER, this.framebuffer );
-
-    gl.bindFramebuffer(gl.FRAMEBUFFER, this.frameBuffer );
-    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, this.texture, 0);
-
-    this.resize(width, height);
-}
-
-FilterTexture.prototype.resize = function resize(width, height)
-{
-    if(this.width === width && this.height === height) return;
-
-    this.width = width;
-    this.height = height;
-
-    var gl = globals.gl;
-
-    gl.bindTexture(gl.TEXTURE_2D,  this.texture);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA,  width, height, 0, gl.RGBA, gl.UNSIGNED_BYTE, null);
-
 };
 
 module.exports = WebGLFilterManager;

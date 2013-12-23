@@ -37,7 +37,7 @@ module.exports = (function () {
 
     if (!global.cancelAnimationFrame) {
         global.cancelAnimationFrame = function(id) {
-            clearTimeout(id);
+            global.clearTimeout(id);
         };
     }
 

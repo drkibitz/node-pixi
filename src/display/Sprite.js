@@ -152,7 +152,7 @@ proto.setTexture = function setTexture(texture)
  * @param event
  * @private
  */
-proto.onTextureUpdate = function onTextureUpdate(event)
+proto.onTextureUpdate = function onTextureUpdate()
 {
     // so if _width is 0 then width was not set..
     if(this._width)this.scale.x = this._width / this.texture.frame.width;

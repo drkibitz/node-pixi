@@ -4,7 +4,7 @@ module.exports = function (grunt) {
     var path = require('path');
     var server = require('karma').server;
 
-    grunt.registerMultiTask('pixi_karma', 'Run with karma runner.', function () {
+    grunt.registerMultiTask('karma', 'Run with karma runner.', function () {
         var done = this.async();
         var options = this.options({
             background: false

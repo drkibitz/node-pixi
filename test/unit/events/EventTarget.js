@@ -8,13 +8,15 @@ describe('events/EventTarget', function () {
     });
 
     it('Confirm new instance', function () {
-        var obj = {}; EventTarget.call(obj);
+        var obj = {};
+        EventTarget.call(obj);
         pixitest.events.EventTarget.like(obj);
     });
 
     it('addEventListener and dispatchEvent works', function (done) {
         var myData = {},
-            obj = {}; EventTarget.call(obj);
+            obj = {};
+        EventTarget.call(obj);
 
         obj.addEventListener('myevent', function (event) {
             expect(event).to.be.an('object');
@@ -27,7 +29,8 @@ describe('events/EventTarget', function () {
     });
 
     it('removeEventListener works', function (done) {
-        var obj = {}; EventTarget.call(obj);
+        var obj = {};
+        EventTarget.call(obj);
 
         function onMyEvent() {
             done(new Error('addEventListener should not have been called'));
@@ -41,7 +44,8 @@ describe('events/EventTarget', function () {
 
     it('multiple dispatches', function () {
         var called = 0,
-            obj = {}; EventTarget.call(obj);
+            obj = {};
+        EventTarget.call(obj);
 
         function onMyEvent() {
             called++;
@@ -57,7 +61,8 @@ describe('events/EventTarget', function () {
 
     it('multiple events', function () {
         var called = 0,
-            obj = {}; EventTarget.call(obj);
+            obj = {};
+        EventTarget.call(obj);
 
         function onMyEvent() {
             called++;
@@ -74,7 +79,8 @@ describe('events/EventTarget', function () {
 
     it('multiple events one removed', function () {
         var called = 0,
-            obj = {}; EventTarget.call(obj);
+            obj = {};
+        EventTarget.call(obj);
 
         function onMyEvent() {
             called++;

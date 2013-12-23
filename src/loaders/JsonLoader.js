@@ -66,9 +66,11 @@ proto.handleEvent = function handleEvent(event)
 {
     switch (event.type) {
     case 'load':
-        this.onJSONLoaded(); break;
+        this.onJSONLoaded();
+        break;
     default:
-        this.onError(); break;
+        this.onError();
+        break;
     }
 };
 

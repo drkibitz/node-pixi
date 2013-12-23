@@ -93,7 +93,7 @@ proto.setTexture = function setTexture(texture)
  * @param event
  * @private
  */
-proto.onTextureUpdate = function onTextureUpdate(event)
+proto.onTextureUpdate = function onTextureUpdate()
 {
     this.updateFrame = true;
 };

@@ -7,8 +7,8 @@ var platform = require('../../platform');
 var globals = require('../../core/globals');
 
 var canvasGraphics = require('./graphics');
+var BaseTexture = require('../../textures/BaseTexture');
 var Texture = require('../../textures/Texture');
-var DisplayObject = require('../../display/DisplayObject');
 
 var Sprite = require('../../display/Sprite');
 var TilingSprite = require('../../extras/TilingSprite');

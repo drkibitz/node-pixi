@@ -39,9 +39,8 @@ var proto = DisplayObjectContainer.prototype = Object.create(DisplayObject.proto
  */
 proto.addChild = function addChild(child)
 {
-    if(child.parent !== undefined)
+    if(child.parent && child.parent !== this)
     {
-
         //// COULD BE THIS???
         child.parent.removeChild(child);
     //  return;

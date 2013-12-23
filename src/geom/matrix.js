@@ -234,7 +234,7 @@ mat4.transpose = function transpose(mat, dest)
     dest[14] = mat[11];
     dest[15] = mat[15];
     return dest;
-}
+};
 
 mat4.multiply = function multiply(mat, mat2, dest)
 {

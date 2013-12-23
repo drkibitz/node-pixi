@@ -165,7 +165,7 @@ exports.renderGraphicsMask = function renderGraphicsMask(graphics, context)
     if(len > 1)
     {
         len = 1;
-        platform.console.warn("Pixi.js warning: masks in canvas can only mask using the first path in the graphics object")
+        platform.console.warn('Pixi.js warning: masks in canvas can only mask using the first path in the graphics object');
     }
 
     for (var i = 0; i < 1; i++)

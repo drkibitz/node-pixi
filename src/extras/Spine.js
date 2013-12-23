@@ -25,7 +25,7 @@ function Spine(url) {
     this.spineData = Spine.animCache[url];
 
     if (!this.spineData) {
-        throw new Error("Spine data must be preloaded using SpineLoader or AssetLoader: " + url);
+        throw new Error('Spine data must be preloaded using SpineLoader or AssetLoader: ' + url);
     }
 
     this.skeleton = new spine.Skeleton(this.spineData);
@@ -82,7 +82,7 @@ proto.updateTransform = function updateTransform() {
         }
 
         if (attachment.rendererObject) {
-            if (!slot.currentSpriteName || slot.currentSpriteName != attachment.name) {
+            if (!slot.currentSpriteName || slot.currentSpriteName !== attachment.name) {
                 var spriteName = attachment.rendererObject.name;
                 if (slot.currentSprite !== undefined) {
                     slot.currentSprite.visible = false;
@@ -114,7 +114,7 @@ proto.updateTransform = function updateTransform() {
 };
 
 proto.createSprite = function createSprite(slot, descriptor) {
-    var name = Texture.cache[descriptor.name] ? descriptor.name : descriptor.name + ".png";
+    var name = Texture.cache[descriptor.name] ? descriptor.name : descriptor.name + '.png';
     var sprite = new Sprite(Texture.fromFrame(name));
     sprite.scale = descriptor.scale;
     sprite.rotation = descriptor.rotation;

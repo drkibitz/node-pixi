@@ -1,5 +1,12 @@
+// --------------------------------------------
+// THIS MODULE IS COPIED TO THE BUILD DIRECTORY
+// --------------------------------------------
+// Which is where the 'pixi' package should
+// have also been installed.
 
-// This file is copied to the build directory.
-// Where the pixi module should have also been copied (so this works as expected).
+// These globals are shims to mimic the Pixi API.
+// They are only available when using the bundles
+// made with this module.
+
 global.PIXI = require('pixi');
 global.requestAnimFrame = require('pixi/utils/raf');

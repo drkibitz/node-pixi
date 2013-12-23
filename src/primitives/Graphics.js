@@ -43,7 +43,7 @@ function Graphics()
      * @property lineColor
      * @type String
      */
-    this.lineColor = "black";
+    this.lineColor = 'black';
 
     /**
      * Graphics data

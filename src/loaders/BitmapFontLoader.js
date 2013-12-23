@@ -71,9 +71,11 @@ var proto = BitmapFontLoader.prototype;
 proto.handleEvent = function handleEvent(event) {
     switch (event.type) {
     case 'load':
-        this.onXMLLoaded(); break;
+        this.onXMLLoaded();
+        break;
     default:
-        this.onError(); break;
+        this.onError();
+        break;
     }
 };
 

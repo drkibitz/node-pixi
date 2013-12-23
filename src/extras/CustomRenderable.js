@@ -17,7 +17,7 @@ function CustomRenderable()
     DisplayObject.call(this);
 
     this.renderable = true;
-};
+}
 
 var proto = CustomRenderable.prototype = Object.create(DisplayObject.prototype, {
     constructor: {value: CustomRenderable}
@@ -29,7 +29,7 @@ var proto = CustomRenderable.prototype = Object.create(DisplayObject.prototype, 
  * @method renderCanvas
  * @param renderer {CanvasRenderer} The renderer instance
  */
-proto.renderCanvas = function renderCanvas(renderer)
+proto.renderCanvas = function renderCanvas()
 {
     // override!
 };
@@ -40,7 +40,7 @@ proto.renderCanvas = function renderCanvas(renderer)
  * @method initWebGL
  * @param renderer {WebGLRenderer} The renderer instance
  */
-proto.initWebGL = function initWebGL(renderer)
+proto.initWebGL = function initWebGL()
 {
     // override!
 };
@@ -52,7 +52,7 @@ proto.initWebGL = function initWebGL(renderer)
  * @param renderGroup {WebGLRenderGroup} The renderer group instance
  * @param projectionMatrix {Matrix} The object's projection matrix
  */
-proto.renderWebGL = function renderWebGL(renderGroup, projectionMatrix)
+proto.renderWebGL = function renderWebGL()
 {
     // not sure if both needed? but ya have for now!
     // override!

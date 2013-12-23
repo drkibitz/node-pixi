@@ -16,7 +16,7 @@ var baseTextureCache = {};
  * @constructor
  * @param source {String} the source object (image or canvas)
  */
-function BaseTexture(source)
+function BaseTexture(source, scaleMode)
 {
     EventTarget.call(this);
 
@@ -157,7 +157,7 @@ BaseTexture.fromImage = function fromImage(imageUrl, crossorigin, scaleMode)
             image.crossOrigin = '';
         }
         image.src = imageUrl;
-        baseTexture = new BaseTexture(image);
+        baseTexture = new BaseTexture(image, scaleMode);
         baseTexture.imageUrl = imageUrl;
         baseTextureCache[imageUrl] = baseTexture;
     }

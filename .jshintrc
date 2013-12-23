@@ -41,12 +41,17 @@
         "module": false,
         "require": false,
 
+        //browserify globals,
+        "global": false,
+
         // PIXI globals
         "PIXI": false,
-        "spine": false,
+        //"spine": false,
 
-        //chai globals
+        //pixitest globals
         "chai": false,
+        "expect": false,
+        "pixitest": false,
 
         //mocha globals
         "describe": false,

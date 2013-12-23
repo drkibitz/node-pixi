@@ -1,3 +1,4 @@
+/*global document, requestAnimFrame, console*/
 describe('Example 1 - Basics', function () {
     'use strict';
 
@@ -66,7 +67,7 @@ describe('Example 1 - Basics', function () {
         // loader.on('onProgress', function (event) {
         //     console.log(event.content);
         // });
-        loader.on('onComplete', function (event) {
+        loader.on('onComplete', function () {
             done();
             initScene();
         });

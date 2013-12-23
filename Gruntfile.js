@@ -1,32 +1,33 @@
+/*global process*/
 module.exports = function(grunt) {
     'use strict';
 
     var banner = [
-    '/**',
-    ' * <%= package.name %> <%= package.version %>',
-    ' * <%= package.homepage %>',
-    ' * Copyright (c) 2013 Dr. Kibitz, http://drkibitz.com',
-    ' * <%= package.description %>',
-    ' * built: ' + new Date(),
-    ' *',
-    ' * Pixi.js - v1.3.0',
-    ' * Copyright (c) 2012, Mat Groves',
-    ' */',
-    ''].join("\n");
+        '/**',
+        ' * <%= package.name %> <%= package.version %>',
+        ' * <%= package.homepage %>',
+        ' * Copyright (c) 2013 Dr. Kibitz, http://drkibitz.com',
+        ' * <%= package.description %>',
+        ' * built: ' + new Date(),
+        ' *',
+        ' * Pixi.js - v1.3.0',
+        ' * Copyright (c) 2012, Mat Groves',
+        ' */',
+        ''
+    ].join('\n');
 
     grunt.initConfig({
         // Configure values
         bundle: {
             dev        : 'bundle.js',
-            debug      : '<%= dir.build %>/pixi-<%= package.version %>-debug.js',
-            release    : '<%= dir.build %>/pixi-<%= package.version %>-release.js'
+            debug      : '<%= dir.build %>/pixi-debug.js',
+            release    : '<%= dir.build %>/pixi.js'
         },
         dir: {
-            bin        : 'bin',
             build      : 'build',
+            dist       : 'dist',
             distmodule : '<%= dir.build %>/node_modules/<%= package.name %>',
             docs       : '<%= dir.build %>/docs',
-            example    : '<%= dir.build %>/example',
             reports    : '<%= dir.build %>/reports',
             src        : 'src',
             test       : 'test'
@@ -53,11 +54,10 @@ module.exports = function(grunt) {
         },
         // grunt-contrib-clean
         clean: {
-            bin: '<%= dir.bin %>',
             bundles: ['<%= bundle.debug %>', '<%= bundle.release %>'],
+            dist: ['<%= dir.dist %>'],
             distmodule: '<%= dir.distmodule %>',
             docs: '<%= dir.docs %>',
-            example: '<%= dir.example %>',
             reports: '<%= dir.reports %>'
         },
         // grunt-contrib-copy
@@ -83,46 +83,23 @@ module.exports = function(grunt) {
             },
             // Copy package removing devDependencies because they are
             // not valid when using the distributed module.
-            distmodule_package: {
+            distpackagejson: {
                 files: {
                     '<%= dir.distmodule %>/': 'package.json'
                 },
                 options: {
-                    processContent: function (contents, srcpath) {
+                    processContent: function (contents) {
                         var json = JSON.parse(contents);
                         delete json.devDependencies;
-                        return JSON.stringify(json, null, "  ");
+                        return JSON.stringify(json, null, '  ');
                     }
                 }
             },
-            example: {
-                files: [
-                    '1-basics',
-                    '2-sprite-sheet',
-                    '3-movie-clip',
-                    '4-balls',
-                    '5-morph',
-                    '6-interactivity',
-                    '7-transparent-background',
-                    '8-dragging',
-                    '9-tiling-texture',
-                    '10-text',
-                    '11-render-texture',
-                    '12-spine',
-                    '13-graphics',
-                    '14-masking'
-                ].map(function (name) {
-                    return {
-                        src: '<%= bundle.release %>',
-                        dest: '<%= dir.example %>/' + name + '/pixi.js'
-                    };
-                })
-            },
-            bin: {
+            dist: {
                 cwd: '<%= dir.build %>',
                 expand: true,
-                src: 'pixi-*-*.js',
-                dest: '<%= dir.bin %>/'
+                src: 'pixi*.js',
+                dest: '<%= dir.dist %>/'
             }
         },
         // grunt-contrib-jshint
@@ -134,15 +111,18 @@ module.exports = function(grunt) {
                 src: [
                     'Gruntfile.js',
                     'tasks/**/*.js',
-                    '<%= dir.src %>/**/*.js',
-                    '<%= dir.test %>/**/*.js'
+                    '<%= dir.src %>/**/*.js'
                 ],
                 options: {
-                    ignores: ['<%= dir.src %>/pixi/filters/MaskFilter.js']
+                    ignores: ['<%= dir.src %>/utils/spine.js']
                 }
             },
-            debug: {
-                src: '<%= bundle.debug %>'
+            test: {
+                src: [
+                    'Gruntfile.js',
+                    'tasks/**/*.js',
+                    '<%= dir.test %>/**/*.js'
+                ]
             }
         },
         // grunt-mocha-test
@@ -163,7 +143,7 @@ module.exports = function(grunt) {
             }
         },
         // ./tasks/pixi.js
-        pixi_karma: {
+        karma: {
             options: {
                 basePath: process.cwd(),
                 configFile: '<%= dir.test %>/karma.conf.js',
@@ -240,11 +220,16 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks('grunt-plato');
     grunt.loadTasks('tasks');
 
-    // Lint source, then copy files that make up the final npm module
+    // Generate documenation
+    grunt.registerTask('docs', ['clean:docs', 'yuidoc:docs']);
+    // Run tests
+    grunt.registerTask('test', ['karma:release', 'mochaTest']);
+
+    // Copy files that make up the final npm module
     grunt.registerTask('distmodule', [
         'clean:distmodule',
         'copy:distmodule',
-        'copy:distmodule_package'
+        'copy:distpackagejson'
     ]);
     // Copy module, bundle for debug with sourceMapping
     grunt.registerTask('debug', [
@@ -263,30 +248,25 @@ module.exports = function(grunt) {
     // Build debug, test, build release, and test again
     grunt.registerTask('travis', [
         'jshint:src', // check source before anything
+        'jshint:test', // then tests
         // debug
         'distmodule',
         'mochaTest', // node test
         'browserify:debug',
-        'jshint:debug',
-        'pixi_karma:debug', // browser test
+        'karma:debug', // browser test
         // release
         'uglify:distmodule',
         'mochaTest', // node test
         'browserify:release',
         'uglify:release',
-        'pixi_karma:release' // browser test
+        'karma:release' // browser test
     ]);
-
-    grunt.registerTask('docs', ['clean:docs', 'yuidoc:docs']);
-    grunt.registerTask('test', ['pixi_karma:release', 'mochaTest']);
 
     // grunt
     grunt.registerTask('default', [
         'travis',
         'plato:src',
-        'clean:bin',
-        'copy:bin',
-        'clean:example',
-        'copy:example'
+        'clean:dist',
+        'copy:dist'
     ]);
 };

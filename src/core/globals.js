@@ -7,9 +7,12 @@ module.exports = {
     // autoDetected: false,
 
     gl: null,
-    shaderProgram: null,
-    primitiveProgram: null,
-    stripShaderProgram: null,
+    primitiveShader: null,
+    stripShader: null,
+    defaultShader: null,
+
+    offset: null,
+    projection:null,
 
     texturesToUpdate: [],
     texturesToDestroy: [],

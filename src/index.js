@@ -4,9 +4,9 @@
 'use strict';
 
 var platform = require('./platform');
-var globals = require('./core/globals');
-var shaders = require('./renderers/webgl/shaders');
-var matrix  = require('./geom/matrix');
+var globals  = require('./core/globals');
+var shaders  = require('./renderers/webgl/shaders');
+var matrix   = require('./geom/matrix');
 
 var pixi = module.exports = Object.create(globals);
 
@@ -25,7 +25,23 @@ pixi.DisplayObjectContainer = require('./display/DisplayObjectContainer');
 pixi.Sprite                 = require('./display/Sprite');
 pixi.MovieClip              = require('./display/MovieClip');
 
-pixi.FilterBlock = require('./filters/FilterBlock');
+pixi.AbstractFilter     = require('./filters/AbstractFilter');
+pixi.BlurFilter         = require('./filters/BlurFilter');
+pixi.BlurXFilter        = require('./filters/BlurXFilter');
+pixi.BlurYFilter        = require('./filters/BlurYFilter');
+pixi.ColorMatrixFilter  = require('./filters/ColorMatrixFilter');
+pixi.ColorStepFilter    = require('./filters/ColorStepFilter');
+pixi.CrossHatchFilter   = require('./filters/CrossHatchFilter');
+pixi.DisplacementFilter = require('./filters/DisplacementFilter');
+pixi.DotScreenFilter    = require('./filters/DotScreenFilter');
+pixi.FilterBlock        = require('./filters/FilterBlock');
+pixi.GrayFilter         = require('./filters/GrayFilter');
+pixi.InvertFilter       = require('./filters/InvertFilter');
+pixi.PixelateFilter     = require('./filters/PixelateFilter');
+pixi.RGBSplitFilter     = require('./filters/RGBSplitFilter');
+pixi.SepiaFilter        = require('./filters/SepiaFilter');
+pixi.SmartBlurFilter    = require('./filters/SmartBlurFilter');
+pixi.TwistFilter        = require('./filters/TwistFilter');
 
 pixi.Text       = require('./text/Text');
 pixi.BitmapText = require('./text/BitmapText');
@@ -64,16 +80,16 @@ pixi.ImageLoader       = require('./loaders/ImageLoader');
 pixi.BitmapFontLoader  = require('./loaders/BitmapFontLoader');
 pixi.SpineLoader       = require('./loaders/SpineLoader');
 
-pixi.initPrimitiveShader     = shaders.initPrimitiveShader;
-pixi.initDefaultShader       = shaders.initDefaultShader;
-pixi.initDefaultStripShader  = shaders.initDefaultStripShader;
-pixi.activateDefaultShader   = shaders.activateDefaultShader;
-pixi.activatePrimitiveShader = shaders.activatePrimitiveShader;
+pixi.initDefaultShaders        = shaders.initDefaultShaders;
+pixi.activatePrimitiveShader   = shaders.activatePrimitiveShader;
+pixi.deactivatePrimitiveShader = shaders.deactivatePrimitiveShader;
+pixi.activateStripShader       = shaders.activateStripShader;
+pixi.deactivateStripShader     = shaders.deactivateStripShader;
 
 /*
  * DEBUGGING ONLY
  */
-PIXI.runList = function(item)
+pixi.runList = function(item)
 {
     platform.console.log('>>>>>>>>>');
     platform.console.log('_');

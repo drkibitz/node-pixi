@@ -69,7 +69,7 @@ function pointInTriangle(px, py, ax, ay, bx, by, cx, cy)
  */
 function convex(ax, ay, bx, by, cx, cy, sign)
 {
-    return ((ay-by)*(cx-bx) + (bx-ax)*(cy-by) >= 0) == sign;
+    return ((ay-by)*(cx-bx) + (bx-ax)*(cy-by) >= 0) === sign;
 }
 
 /**
@@ -141,7 +141,7 @@ exports.triangulate = function(p)
             }
             else
             {
-                platform.console.warn("PIXI Warning: shape too complex to fill")
+                platform.console.warn('PIXI Warning: shape too complex to fill');
                 return [];
             }
         }
