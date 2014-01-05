@@ -4,10 +4,10 @@ module.exports = function(grunt) {
 
     var banner = [
         '/**',
-        ' * <%= package.name %> <%= package.version %>',
-        ' * <%= package.homepage %>',
-        ' * Copyright (c) 2013 Dr. Kibitz, http://drkibitz.com',
-        ' * <%= package.description %>',
+        ' * <%= pkg.name %> <%= releaseVersion %> (<%= meta.revision %>)',
+        ' * <%= pkg.homepage %>',
+        ' * Copyright (c) 2013-' + new Date().getFullYear() + ' Dr. Kibitz, http://drkibitz.com',
+        ' * <%= pkg.description %>',
         ' * built: ' + new Date(),
         ' *',
         ' * Pixi.js - v1.3.0',
@@ -19,20 +19,24 @@ module.exports = function(grunt) {
     grunt.initConfig({
         // Configure values
         bundle: {
-            dev        : 'bundle.js',
-            debug      : '<%= dir.build %>/pixi-debug.js',
-            release    : '<%= dir.build %>/pixi.js'
+            source    : '<%= dir.source %>/bundle.js',
+            test      : '<%= dir.build %>/bundle.js',
+            debug     : '<%= dir.build %>/pixi-debug.js',
+            release   : '<%= dir.build %>/pixi.js'
         },
         dir: {
-            build      : 'build',
-            dist       : 'dist',
-            distmodule : '<%= dir.build %>/node_modules/<%= package.name %>',
-            docs       : '<%= dir.build %>/docs',
-            reports    : '<%= dir.build %>/reports',
-            src        : 'src',
-            test       : 'test'
+            build     : 'build',
+            dist      : 'dist',
+            distpkg   : '<%= dir.build %>/node_modules/<%= pkg.name %>',
+            docs      : '<%= dir.build %>/docs',
+            reports   : '<%= dir.build %>/reports',
+            source    : 'src',
+            sourcepkg : '<%= dir.source %>/<%= pkg.name %>',
+            test      : 'test'
         },
-        package : grunt.file.readJSON('package.json'),
+        pkg: grunt.file.readJSON('package.json'),
+        // Release version is without '-dev' from package version
+        releaseVersion: '<%= pkg.version.substr(0, pkg.version.indexOf(\'-\')) %>',
 
         // Configure tasks
 
@@ -43,54 +47,68 @@ module.exports = function(grunt) {
                     debug: true
                 },
                 files: {
+                    // Should have already been copied with
+                    // a test installation of the package.
                     '<%= bundle.debug %>': ['<%= bundle.debug %>']
                 }
             },
             release: {
                 files: {
+                    // Should have already been copied with
+                    // a test installation of the package.
                     '<%= bundle.release %>': ['<%= bundle.release %>']
                 }
             }
         },
         // grunt-contrib-clean
         clean: {
-            bundles: ['<%= bundle.debug %>', '<%= bundle.release %>'],
+            bundles: [
+                '<%= bundle.test %>',
+                '<%= bundle.debug %>',
+                '<%= bundle.release %>'
+            ],
             dist: ['<%= dir.dist %>'],
-            distmodule: '<%= dir.distmodule %>',
+            distpkg: '<%= dir.distpkg %>',
             docs: '<%= dir.docs %>',
             reports: '<%= dir.reports %>'
         },
         // grunt-contrib-copy
         copy: {
-            distmodule: {
+            distpkg: {
                 files: [{
-                    cwd: '<%= dir.src %>',
+                    cwd: '<%= dir.sourcepkg %>',
                     expand: true,
                     src: '**',
-                    dest: '<%= dir.distmodule %>/'
+                    dest: '<%= dir.distpkg %>/'
                 }, {
                     src: [
                         'LICENSE',
                         'LICENSE-Pixi',
                         'README.md'
                     ],
-                    dest: '<%= dir.distmodule %>/'
+                    dest: '<%= dir.distpkg %>/'
                 }, {
-                    '<%= dir.build %>/': '<%= bundle.dev %>',
-                    '<%= bundle.debug %>': '<%= bundle.dev %>',
-                    '<%= bundle.release %>': '<%= bundle.dev %>'
+                    // Copy all these first before bundling.
+                    // This is because we can test that bundling works
+                    // with a test version of the distributed package.
+                    '<%= bundle.test %>': '<%= bundle.source %>',
+                    '<%= bundle.debug %>': '<%= bundle.source %>',
+                    '<%= bundle.release %>': '<%= bundle.source %>'
                 }]
             },
-            // Copy package removing devDependencies because they are
-            // not valid when using the distributed module.
-            distpackagejson: {
+            // Copy package.js processing the content
+            distpkgjson: {
                 files: {
-                    '<%= dir.distmodule %>/': 'package.json'
+                    '<%= dir.distpkg %>/': 'package.json'
                 },
                 options: {
-                    processContent: function (contents) {
+                    process: function (contents) {
                         var json = JSON.parse(contents);
+                        // Remove devDependencies because they are
+                        // not valid when using the distributed module.
                         delete json.devDependencies;
+                        // Set package version to release version
+                        json.version = grunt.config.get('releaseVersion');
                         return JSON.stringify(json, null, '  ');
                     }
                 }
@@ -107,20 +125,18 @@ module.exports = function(grunt) {
             options: {
                 jshintrc: '.jshintrc'
             },
-            src: {
+            source: {
                 src: [
                     'Gruntfile.js',
                     'tasks/**/*.js',
-                    '<%= dir.src %>/**/*.js'
+                    '<%= dir.source %>/**/*.js'
                 ],
                 options: {
-                    ignores: ['<%= dir.src %>/utils/spine.js']
+                    ignores: ['<%= dir.sourcepkg %>/utils/spine.js']
                 }
             },
             test: {
                 src: [
-                    'Gruntfile.js',
-                    'tasks/**/*.js',
                     '<%= dir.test %>/**/*.js'
                 ]
             }
@@ -132,9 +148,9 @@ module.exports = function(grunt) {
                 timeout: 3000,
                 ignoreLeaks: false
             },
-            distmodule: {
+            distpkg: {
                 options: {
-                    require: ['<%= dir.build %>/<%= bundle.dev %>', 'node-pixi-pixitest']
+                    require: ['<%= bundle.test %>', 'node-pixi-pixitest']
                 },
                 src: [
                     //'<%= dir.test %>/unit/**/*.js'
@@ -164,12 +180,12 @@ module.exports = function(grunt) {
         },
         // grunt-plato
         plato: {
-            src: {
+            source: {
                 options : {
                     jshint : false
                 },
                 files: {
-                    '<%= dir.reports %>': ['<%= dir.src %>/**/*.js'],
+                    '<%= dir.reports %>': ['<%= dir.sourcepkg %>/**/*.js'],
                 }
             }
         },
@@ -178,11 +194,11 @@ module.exports = function(grunt) {
             options: {
                 banner: banner
             },
-            distmodule: {
-                cwd: '<%= dir.distmodule %>',
+            distpkg: {
+                cwd: '<%= dir.distpkg %>',
                 expand: true,
                 src: '**/*.js',
-                dest: '<%= dir.distmodule %>/'
+                dest: '<%= dir.distpkg %>/'
             },
             release: {
                 options: {
@@ -198,12 +214,12 @@ module.exports = function(grunt) {
         // grunt-contrib-yuidoc
         yuidoc: {
             docs: {
-                name: '<%= package.name %>',
-                description: '<%= package.description %>',
-                version: '<%= package.version %>',
-                url: '<%= package.homepage %>',
+                name: '<%= pkg.name %>',
+                description: '<%= pkg.description %>',
+                version: '<%= releaseVersion %>',
+                url: '<%= pkg.homepage %>',
                 options: {
-                    paths: '<%= dir.src %>',
+                    paths: '<%= dir.sourcepkg %>',
                     outdir: '<%= dir.docs %>'
                 }
             }
@@ -216,6 +232,7 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks('grunt-contrib-jshint');
     grunt.loadNpmTasks('grunt-contrib-uglify');
     grunt.loadNpmTasks('grunt-contrib-yuidoc');
+    grunt.loadNpmTasks('grunt-git-revision');
     grunt.loadNpmTasks('grunt-mocha-test');
     grunt.loadNpmTasks('grunt-plato');
     grunt.loadTasks('tasks');
@@ -226,20 +243,21 @@ module.exports = function(grunt) {
     grunt.registerTask('test', ['karma:release', 'mochaTest']);
 
     // Copy files that make up the final npm module
-    grunt.registerTask('distmodule', [
-        'clean:distmodule',
-        'copy:distmodule',
-        'copy:distpackagejson'
+    grunt.registerTask('distpkg', [
+        'revision',
+        'clean:distpkg',
+        'copy:distpkg',
+        'copy:distpkgjson'
     ]);
     // Copy module, bundle for debug with sourceMapping
     grunt.registerTask('debug', [
-        'distmodule',
+        'distpkg',
         'browserify:debug'
     ]);
     // Copy and uglify module, bundle, and uglify for release
     grunt.registerTask('release', [
-        'distmodule',
-        'uglify:distmodule',
+        'distpkg',
+        'uglify:distpkg',
         'browserify:release',
         'uglify:release'
     ]);
@@ -247,15 +265,15 @@ module.exports = function(grunt) {
     // npm test (Travis CI task)
     // Build debug, test, build release, and test again
     grunt.registerTask('travis', [
-        'jshint:src', // check source before anything
+        'jshint:source', // check source before anything
         'jshint:test', // then tests
         // debug
-        'distmodule',
+        'distpkg',
         'mochaTest', // node test
         'browserify:debug',
         'karma:debug', // browser test
         // release
-        'uglify:distmodule',
+        'uglify:distpkg',
         'mochaTest', // node test
         'browserify:release',
         'uglify:release',
@@ -265,7 +283,7 @@ module.exports = function(grunt) {
     // grunt
     grunt.registerTask('default', [
         'travis',
-        'plato:src',
+        'plato:source',
         'clean:dist',
         'copy:dist'
     ]);
