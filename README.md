@@ -5,9 +5,9 @@
 
 This is a fork of [Pixi.JS](https://github.com/GoodBoyDigital/pixi.js) mainly for use with [browserify](http://browserify.org/), but has also went in a slightly different direction in terms of programming style.
 
-As of the currest version, node-pixi matches the public Pixi.JS API, but now modular with browserify. In later versions, the public API and architecture are subject to change and may no longer match Pixi.JS. If/when such split occurs the project's versioning and branching will be updated occordingly.
+**node-pixi matches the public Pixi.JS API, but now modular with browserify.** In a later major version, the public API and architecture may change to no longer match Pixi.JS. If/when such a split occurs the project's major version and branching will be updated occordingly, and the latest major version with full compatibility with Pixi.JS will containue to be maintained.
 
-*Basically, I am open to MAJOR refactors if they are appropriate, and it might even be completely rewritten in TypeScript in the future (not there yet). Also in the future, the goals may differ from Pixi.JS. I may streamline things and standardize only on WebGL, and maybe sooner rather than later (Saying goodbye to context 2d).*
+*Basically I am open to MAJOR refactors if appropriate. In the future, the goals may differ from Pixi.JS, and I may streamline things to only on WebGL, and maybe sooner rather than later (Saying goodbye to context 2d). This is all a maybe, as the web is moving fast, and Pixi.JS may actually make this move before this project.*
 
 ### Pixi.JS JavaScript 2D Renderer
 
