@@ -4,10 +4,10 @@ module.exports = function(grunt) {
 
     var banner = [
         '/**',
-        ' * <%= package.name %> <%= package.version %>',
-        ' * <%= package.homepage %>',
-        ' * Copyright (c) 2013 Dr. Kibitz, http://drkibitz.com',
-        ' * <%= package.description %>',
+        ' * <%= pkg.name %> <%= releaseVersion %> (<%= meta.revision %>)',
+        ' * <%= pkg.homepage %>',
+        ' * Copyright (c) 2013-' + new Date().getFullYear() + ' Dr. Kibitz, http://drkibitz.com',
+        ' * <%= pkg.description %>',
         ' * built: ' + new Date(),
         ' *',
         ' * Pixi.js - v1.3.0',
@@ -27,14 +27,16 @@ module.exports = function(grunt) {
         dir: {
             build     : 'build',
             dist      : 'dist',
-            distpkg   : '<%= dir.build %>/node_modules/<%= package.name %>',
+            distpkg   : '<%= dir.build %>/node_modules/<%= pkg.name %>',
             docs      : '<%= dir.build %>/docs',
             reports   : '<%= dir.build %>/reports',
             source    : 'src',
-            sourcepkg : '<%= dir.source %>/<%= package.name %>',
+            sourcepkg : '<%= dir.source %>/<%= pkg.name %>',
             test      : 'test'
         },
-        package : grunt.file.readJSON('package.json'),
+        pkg: grunt.file.readJSON('package.json'),
+        // Release version is without '-dev' from package version
+        releaseVersion: '<%= pkg.version.substr(0, pkg.version.indexOf(\'-\')) %>',
 
         // Configure tasks
 
@@ -94,16 +96,19 @@ module.exports = function(grunt) {
                     '<%= bundle.release %>': '<%= bundle.source %>'
                 }]
             },
-            // Copy package removing devDependencies because they are
-            // not valid when using the distributed module.
+            // Copy package.js processing the content
             distpkgjson: {
                 files: {
                     '<%= dir.distpkg %>/': 'package.json'
                 },
                 options: {
-                    processContent: function (contents) {
+                    process: function (contents) {
                         var json = JSON.parse(contents);
+                        // Remove devDependencies because they are
+                        // not valid when using the distributed module.
                         delete json.devDependencies;
+                        // Set package version to release version
+                        json.version = grunt.config.get('releaseVersion');
                         return JSON.stringify(json, null, '  ');
                     }
                 }
@@ -209,10 +214,10 @@ module.exports = function(grunt) {
         // grunt-contrib-yuidoc
         yuidoc: {
             docs: {
-                name: '<%= package.name %>',
-                description: '<%= package.description %>',
-                version: '<%= package.version %>',
-                url: '<%= package.homepage %>',
+                name: '<%= pkg.name %>',
+                description: '<%= pkg.description %>',
+                version: '<%= releaseVersion %>',
+                url: '<%= pkg.homepage %>',
                 options: {
                     paths: '<%= dir.sourcepkg %>',
                     outdir: '<%= dir.docs %>'
@@ -227,6 +232,7 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks('grunt-contrib-jshint');
     grunt.loadNpmTasks('grunt-contrib-uglify');
     grunt.loadNpmTasks('grunt-contrib-yuidoc');
+    grunt.loadNpmTasks('grunt-git-revision');
     grunt.loadNpmTasks('grunt-mocha-test');
     grunt.loadNpmTasks('grunt-plato');
     grunt.loadTasks('tasks');
@@ -238,6 +244,7 @@ module.exports = function(grunt) {
 
     // Copy files that make up the final npm module
     grunt.registerTask('distpkg', [
+        'revision',
         'clean:distpkg',
         'copy:distpkg',
         'copy:distpkgjson'
