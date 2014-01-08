@@ -41,7 +41,7 @@
   "name": "pixi",
   "repository": "https://github.com/drkibitz/node-pixi",
   "scripts": {
-    "test": "grunt travis --verbose"
+    "test": "grunt test"
   },
   "version": "0.3.0-dev"
 }

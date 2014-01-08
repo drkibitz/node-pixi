@@ -1,5 +1,7 @@
-[![Build Status](https://secure.travis-ci.org/drkibitz/node-pixi.png)](http://travis-ci.org/drkibitz/node-pixi)
+[![Build Status](https://secure.travis-ci.org/drkibitz/node-pixi.png?branch=master)](http://travis-ci.org/drkibitz/node-pixi?branch=master)
+[![Coverage Status](https://coveralls.io/repos/drkibitz/node-pixi/badge.png?branch=master)](https://coveralls.io/r/drkibitz/node-pixi?branch=master)
 [![NPM version](https://badge.fury.io/js/pixi.png)](http://badge.fury.io/js/pixi)
+[![devDependency Status](https://david-dm.org/drkibitz/node-pixi/dev-status.png)](https://david-dm.org/drkibitz/node-pixi#info=devDependencies)
 
 # Node Pixi Renderer
 
@@ -114,42 +116,43 @@ Get the source:
 git clone https://github.com/drkibitz/node-pixi.git
 ```
 
-It's important to clone the source, and not assume that the source is the same is what is published to NPM. The package on NPM is and should be considered a distributed release only, and is not compatible with the build process outlined here. To avoid any confusion about this, the published package.json has NO `devDependencies`, while the `devDependencies` of the source package.json remain.
-
-[![devDependency Status](https://david-dm.org/drkibitz/node-pixi/dev-status.png)](https://david-dm.org/drkibitz/node-pixi#info=devDependencies)
-
-The source repository is a valid NPM package with the same name of the distributed NPM package. Meaning it can also be installed with NPM, and directly from Github. There are a few ways to define a URL to do this between NPM and Github, just read [npm-faq](https://npmjs.org/doc/faq.html). I would recommend the following example, which runs very fast. I tend to prefer installing from Github tarballs rather than the Git protocol to avoiding transferring the history. This is a *significantly faster* installation:
-```shell
-npm install https://github.com/drkibitz/node-pixi/archive/master.tar.gz
-```
-
-Now with your repository cloned, install the previously mentioned `devDependencies` using NPM:
+Within your clone repository, install the `devDependencies` using NPM:
 ```shell
 cd path/to/clone/
 npm install
 ```
 
-If the install was successful, you should now be able to build node-pixi with Grunt. Within your clone, run the default Grunt task:
+You should now be able to build node-pixi with Grunt:
 ```
 grunt
 ```
 
-The default task is a slightly extended version of the continious integration task (for Travis CI). In addition to building and testing both debug and release bundles, it creates project analysis reports using [plato](https://github.com/es-analysis/plato), and then copies the release bundle to the example directories meant to be committed to the **gh-pages** branch.
+Look in the `Gruntfile.js` for task configuration.
 
-Please see take a look at this project's `Gruntfile.js` for more information on tasks, and task configuration.
+### Important Notes
+
+**It's important to clone the source, and not assume that the source is the same is what is published to NPM.** The package on NPM is and should be considered a distributed release only, and is not compatible with the build process outlined here. To avoid any confusion about this, the published package.json has NO `devDependencies`, while the `devDependencies` of the source `package.json` remain.
+
+The source may still be installed via NPM directly from Github. There are a few ways to define a URL to do this, just read [npm-faq](https://npmjs.org/doc/faq.html). If meant as a package dependency, I prefer using Github tarballs rather than the Git protocol to avoiding transferring the history. This is a *significantly faster* installation:
+```shell
+npm install https://github.com/drkibitz/node-pixi/archive/master.tar.gz
+```
+
+The default task is only slightly different from the task meant for continious integration. Both tasks build and test the bundles for debug and release, and copy the bundles to the dist directory, which are meant to be committed only by a repository maintainer. The difference is the default task creates project analysis reports using [plato](https://github.com/es-analysis/plato), and the ci task submits code coverage.
 
 ## Contribute
 
 Want to contribute to node-pixi? Just make a pull request or a suggestion on [Github](https://github.com/drkibitz/node-pixi/issues). Please make sure you write tests, and run them before committing changes.
 
-If you followed the steps in the **Build from Source** section, then you can now run the tests locally:
+If you followed the steps in the **Build** section, then you can now run the tests locally:
 ```
 grunt test
 ```
 
 - The test suite uses the [karma-runner](http://karma-runner.github.io/0.10/index.html)
-- The test suite expects Firefox to be installed (This can be configured in `test/karma.conf.js`)
-- Tests are run for every [Travis CI](https://travis-ci.org/) build
+- The test suite expects Chrome to be installed (Configured in `Gruntfile.js`)
+- Tests run for every [Travis CI](https://travis-ci.org/) build
+- Code coverage is submitted to [coveralls](https://coveralls.io/) when running `grunt travis`
 
 ## Coming Soon
 
