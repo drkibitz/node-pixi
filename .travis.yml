@@ -4,7 +4,12 @@ node_js:
 
 branches:
     only:
-        - master
+    - master
+
+env:
+    global:
+    - secure: cf3J/DMNOhd2I8/e3xUxtBuZpwzlLonMy4HdK8wwJzOiKJXhYvPelmTUkZa/Eii0MIYS10uZvf8kVw8lO5Rw68q+S52ZGToyLcDyrlRN7JwaztRaHMar8cJaVPygorTAMleNdE19SvX84o6Z8dBGdMvbUvqoBPlL9Yy87zK0hwI=
+    - secure: Y9cyzdN7Pidsl/6VK3a57xDjdf/JVPuvtl2GZboH3jFbH1LqQdyaCAq6i23yD5zbHhQ486rPagpsCjdxVu4OMwMnt4d8W7na6tqJ982HHtzL/cCSNtVI4qeFXWZ6bc1gFe3mchEEzFk20eBlqcoCaChlq7wadG1EwNC2T6/s9oM=
 
 install:
     - npm install -g grunt-cli

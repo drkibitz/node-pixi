@@ -19,13 +19,15 @@ module.exports = function(grunt) {
     grunt.initConfig({
         // Configure values
         bundle: {
-            source    : '<%= dir.source %>/bundle.js',
-            test      : '<%= dir.build %>/bundle.js',
-            debug     : '<%= dir.build %>/pixi-debug.js',
-            release   : '<%= dir.build %>/pixi.js'
+            direct   : '<%= dir.source %>/bundle-direct.js',
+            distpkg  : '<%= dir.source %>/bundle-distpkg.js',
+            testnode : '<%= dir.source %>/bundle-testnode.js',
+            debug    : '<%= dir.build %>/pixi-debug.js',
+            release  : '<%= dir.build %>/pixi.js'
         },
         dir: {
             build     : 'build',
+            coverage  : '<%= dir.build %>/coverage',
             dist      : 'dist',
             distpkg   : '<%= dir.build %>/node_modules/<%= pkg.name %>',
             docs      : '<%= dir.build %>/docs',
@@ -63,10 +65,10 @@ module.exports = function(grunt) {
         // grunt-contrib-clean
         clean: {
             bundles: [
-                '<%= bundle.test %>',
                 '<%= bundle.debug %>',
                 '<%= bundle.release %>'
             ],
+            coverage: ['<%= dir.coverage %>'],
             dist: ['<%= dir.dist %>'],
             distpkg: '<%= dir.distpkg %>',
             docs: '<%= dir.docs %>',
@@ -91,9 +93,8 @@ module.exports = function(grunt) {
                     // Copy all these first before bundling.
                     // This is because we can test that bundling works
                     // with a test version of the distributed package.
-                    '<%= bundle.test %>': '<%= bundle.source %>',
-                    '<%= bundle.debug %>': '<%= bundle.source %>',
-                    '<%= bundle.release %>': '<%= bundle.source %>'
+                    '<%= bundle.debug %>': '<%= bundle.distpkg %>',
+                    '<%= bundle.release %>': '<%= bundle.distpkg %>'
                 }]
             },
             // Copy package.js processing the content
@@ -118,6 +119,14 @@ module.exports = function(grunt) {
                 expand: true,
                 src: 'pixi*.js',
                 dest: '<%= dir.dist %>/'
+            }
+        },
+        // grunt-coveralls
+        coveralls: {
+            travis: {
+                files: {
+                    src: '<%= dir.coverage %>/**/lcov.info'
+                }
             }
         },
         // grunt-contrib-jshint
@@ -146,14 +155,18 @@ module.exports = function(grunt) {
             options: {
                 globals: ['expect', 'resemble', 'pixitest', 'PIXI'],
                 timeout: 3000,
-                ignoreLeaks: false
+                ignoreLeaks: false,
+                require: [
+                    '<%= bundle.testnode %>',
+                    'node-pixi-pixitest'
+                ]
             },
-            distpkg: {
+            source: {
                 options: {
-                    require: ['<%= bundle.test %>', 'node-pixi-pixitest']
+                    reporter: 'spec'
                 },
                 src: [
-                    //'<%= dir.test %>/unit/**/*.js'
+                    '<%= dir.test %>/unit/**/*.js'
                     //'<%= dir.test %>/functional/**/*.js'
                 ]
             }
@@ -161,21 +174,87 @@ module.exports = function(grunt) {
         // ./tasks/pixi.js
         karma: {
             options: {
-                basePath: process.cwd(),
                 configFile: '<%= dir.test %>/karma.conf.js',
+                // WARNING: Do not set these in the config file!
+                basePath: process.cwd(),
+                frameworks: ['mocha'],
+                reporters: ['spec'],
+                port: 9876,
+                runnerPort: 9100,
                 files: [
                     {pattern: '<%= dir.test %>/**/*.png', watched: false, included: false, served: true},
                     'node_modules/node-pixi-pixitest/pixitest.js',
-                    '<%= dir.test %>/unit/**/*.js',
+                    '<%= dir.test %>/unit/**/*.js'
                     //'<%= dir.test %>/functional/**/*.js'
+                ],
+                browsers: [process.env.TRAVIS ? 'Firefox' : 'Chrome'],
+                singleRun: true,
+                plugins: [
+                    'karma-mocha',
+                    'karma-spec-reporter',
+                    process.env.TRAVIS ? 'karma-firefox-launcher' : 'karma-chrome-launcher'
                 ]
             },
-            debug: {
-                prependFiles: ['<%= bundle.debug %>']
+            // test with source
+            source: {
+                preprocessors: {
+                    '<%= dir.sourcepkg %>/**/*.js': ['commonjs'],
+                    '<%= bundle.direct %>': ['commonjs'],
+                    '<%= dir.test %>/unit/**/*.js': ['commonjs']
+                },
+                append: {
+                    frameworks: ['commonjs'],
+                    plugins: ['karma-commonjs']
+                },
+                prepend: {
+                    files: [
+                        '<%= dir.sourcepkg %>/**/*.js',
+                        '<%= bundle.direct %>'
+                    ]
+                }
             },
+            // test with instrumented source
+            coverage: {
+                port: 9877, // different port to run on same process if need be
+                preprocessors: {
+                    '<%= dir.sourcepkg %>/**/*.js': ['commonjs', 'coverage'],
+                    '<%= bundle.direct %>': ['commonjs'],
+                    '<%= dir.test %>/unit/**/*.js': ['commonjs']
+                },
+                coverageReporter: {
+                    type: 'lcov',
+                    dir: '<%= dir.coverage %>/'
+                },
+                append: {
+                    frameworks: ['commonjs'],
+                    reporters: ['coverage'],
+                    plugins: [
+                        'karma-commonjs',
+                        'karma-coverage'
+                    ]
+                },
+                prepend: {
+                    files: [
+                        '<%= dir.sourcepkg %>/**/*.js',
+                        '<%= bundle.direct %>'
+                    ]
+                }
+            },
+            // test with debug bundle
+            debug: {
+                port: 9878, // different port to run on same process if need be
+                reporters: ['progress'],
+                prepend: {
+                    files: ['<%= bundle.debug %>']
+                }
+            },
+            // test with release bundle
             release: {
-                port : 9877, // different port to run on same process if need be
-                prependFiles: ['<%= bundle.release %>']
+                port: 9879, // different port to run on same process if need be
+                reporters: ['progress'],
+                prepend: {
+                    files: ['<%= bundle.release %>']
+                }
             }
         },
         // grunt-plato
@@ -232,16 +311,16 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks('grunt-contrib-jshint');
     grunt.loadNpmTasks('grunt-contrib-uglify');
     grunt.loadNpmTasks('grunt-contrib-yuidoc');
+    grunt.loadNpmTasks('grunt-coveralls');
     grunt.loadNpmTasks('grunt-git-revision');
     grunt.loadNpmTasks('grunt-mocha-test');
     grunt.loadNpmTasks('grunt-plato');
     grunt.loadTasks('tasks');
 
+    // Generate coverage
+    grunt.registerTask('coverage', ['clean:coverage', 'karma:coverage']);
     // Generate documenation
     grunt.registerTask('docs', ['clean:docs', 'yuidoc:docs']);
-    // Run tests
-    grunt.registerTask('test', ['karma:release', 'mochaTest']);
-
     // Copy files that make up the final npm module
     grunt.registerTask('distpkg', [
         'revision',
@@ -249,42 +328,57 @@ module.exports = function(grunt) {
         'copy:distpkg',
         'copy:distpkgjson'
     ]);
-    // Copy module, bundle for debug with sourceMapping
+    // Copy package
+    // Bundle for debug with sourceMapping
     grunt.registerTask('debug', [
         'distpkg',
         'browserify:debug'
     ]);
-    // Copy and uglify module, bundle, and uglify for release
+    // Copy and uglify package
+    // Bundle and uglify for release
     grunt.registerTask('release', [
         'distpkg',
         'uglify:distpkg',
         'browserify:release',
         'uglify:release'
     ]);
-
-    // npm test (Travis CI task)
-    // Build debug, test, build release, and test again
-    grunt.registerTask('travis', [
-        'jshint:source', // check source before anything
-        'jshint:test', // then tests
-        // debug
+    // Bundle for debug with sourceMapping, then test it
+    // Bundle and uglify for release, then test it
+    // After tests, copy bundles to dist
+    grunt.registerTask('build', [
+        // copy package
         'distpkg',
-        'mochaTest', // node test
+        // bundle debug
         'browserify:debug',
-        'karma:debug', // browser test
-        // release
+        'karma:debug',
+        // uglify package
         'uglify:distpkg',
-        'mochaTest', // node test
+        // bundle release
         'browserify:release',
         'uglify:release',
-        'karma:release' // browser test
-    ]);
-
-    // grunt
-    grunt.registerTask('default', [
-        'travis',
-        'plato:source',
+        'karma:release',
+        // Copy bundles to dist
         'clean:dist',
         'copy:dist'
+    ]);
+    // JSHint and test source in node and browser
+    grunt.registerTask('test', [
+        'jshint:source', // check source before anything
+        'jshint:test', // then tests
+        'coverage', // Use karma:source test without coverage
+        'mochaTest:source'
+    ]);
+    // npm test (Travis CI task)
+    // Test source, build debug and test, build release and test again
+    grunt.registerTask('travis', [
+        'test',
+        'coveralls',
+        'build'
+    ]);
+    // grunt
+    grunt.registerTask('default', [
+        'test',
+        'plato:source',
+        'build'
     ]);
 };
