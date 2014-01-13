@@ -119,14 +119,6 @@ module.exports = function(grunt) {
                 dest: '<%= dir.dist %>/'
             }
         },
-        // grunt-coveralls
-        coveralls: {
-            coverage: {
-                files: {
-                    src: '<%= dir.coverage %>/**/lcov.info'
-                }
-            }
-        },
         // grunt-contrib-jshint
         jshint: {
             options: {
@@ -241,7 +233,7 @@ module.exports = function(grunt) {
             // test with debug bundle
             debug: {
                 port: 9878, // different port to run on same process if need be
-                reporters: ['progress'],
+                reporters: ['dots'],
                 prepend: {
                     files: ['<%= bundle.debug %>']
                 }
@@ -249,7 +241,7 @@ module.exports = function(grunt) {
             // test with release bundle
             release: {
                 port: 9879, // different port to run on same process if need be
-                reporters: ['progress'],
+                reporters: ['dots'],
                 prepend: {
                     files: ['<%= bundle.release %>']
                 }
@@ -309,7 +301,6 @@ module.exports = function(grunt) {
     grunt.loadNpmTasks('grunt-contrib-jshint');
     grunt.loadNpmTasks('grunt-contrib-uglify');
     grunt.loadNpmTasks('grunt-contrib-yuidoc');
-    grunt.loadNpmTasks('grunt-coveralls');
     grunt.loadNpmTasks('grunt-git-revision');
     grunt.loadNpmTasks('grunt-mocha-test');
     grunt.loadNpmTasks('grunt-plato');
@@ -317,6 +308,7 @@ module.exports = function(grunt) {
 
     // Generate coverage
     grunt.registerTask('coverage', ['clean:coverage', 'karma:coverage']);
+
     // Generate documenation
     grunt.registerTask('docs', ['clean:docs', 'yuidoc:docs']);
 
@@ -327,22 +319,6 @@ module.exports = function(grunt) {
         'copy:buildpkg',
         'copy:buildpkgjson'
     ]);
-
-    // Copy package
-    // Bundle for debug with sourceMapping
-    /*grunt.registerTask('debug', [
-        'buildpkg',
-        'browserify:debug',
-    ]);*/
-
-    // Copy and uglify package
-    // Bundle and uglify for release
-    /*grunt.registerTask('release', [
-        'buildpkg',
-        'uglify:buildpkg',
-        'browserify:release',
-        'uglify:release'
-    ]);*/
 
     // Bundle for debug with sourceMapping, then test it
     // Bundle and uglify for release, then test it
@@ -371,17 +347,9 @@ module.exports = function(grunt) {
         'mochaTest:source'
     ]);
 
-    // .travis.yml (Continous Integration)
-    grunt.registerTask('travis', [
-        'test',         // Lint and test source
-        'coveralls',    // Submit coverage
-        'build'         // Build and test package and bundles
-    ]);
-
     // grunt
     grunt.registerTask('default', [
         'test',         // Lint and test source
-        'plato:source', // Analyze code and write reports
         'build'         // Build and test package and bundles
     ]);
 };

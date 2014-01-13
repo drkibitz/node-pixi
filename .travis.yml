@@ -1,21 +1,19 @@
 language: node_js
 node_js:
-    - 0.10
-
-branches:
-    only:
-    - master
-
+- '0.10'
+- '0.11'
 env:
-    global:
-    - secure: cf3J/DMNOhd2I8/e3xUxtBuZpwzlLonMy4HdK8wwJzOiKJXhYvPelmTUkZa/Eii0MIYS10uZvf8kVw8lO5Rw68q+S52ZGToyLcDyrlRN7JwaztRaHMar8cJaVPygorTAMleNdE19SvX84o6Z8dBGdMvbUvqoBPlL9Yy87zK0hwI=
-    - secure: Y9cyzdN7Pidsl/6VK3a57xDjdf/JVPuvtl2GZboH3jFbH1LqQdyaCAq6i23yD5zbHhQ486rPagpsCjdxVu4OMwMnt4d8W7na6tqJ982HHtzL/cCSNtVI4qeFXWZ6bc1gFe3mchEEzFk20eBlqcoCaChlq7wadG1EwNC2T6/s9oM=
-
+  global:
+  - secure: Y9cyzdN7Pidsl/6VK3a57xDjdf/JVPuvtl2GZboH3jFbH1LqQdyaCAq6i23yD5zbHhQ486rPagpsCjdxVu4OMwMnt4d8W7na6tqJ982HHtzL/cCSNtVI4qeFXWZ6bc1gFe3mchEEzFk20eBlqcoCaChlq7wadG1EwNC2T6/s9oM=
 install:
-    - npm install -g grunt-cli
-    - export DISPLAY=:99.0
-    - sh -e /etc/init.d/xvfb start
-    - npm install
-
+- npm install grunt-cli coveralls
+- npm install
+cache:
+  directories:
+  - node_modules
+before_script:
+- export DISPLAY=:99.0
+- sh -e /etc/init.d/xvfb start
 script:
-    - grunt travis
+- ./node_modules/.bin/grunt
+- cat ./build/coverage/**/lcov.info | ./node_modules/.bin/coveralls
