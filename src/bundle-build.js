@@ -8,5 +8,6 @@
 // They are only available when using the bundles
 // made with this module.
 
-global.PIXI = require('pixi');
-global.requestAnimFrame = require('pixi/utils/raf');
+var platform = require('pixi/platform');
+platform.global.PIXI = require('pixi');
+platform.global.requestAnimFrame = require('pixi/utils/raf');

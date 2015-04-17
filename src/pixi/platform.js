@@ -1,7 +1,13 @@
+/*global global,self,window*/
 /**
  * @author Dr. Kibitz <info@drkibitz.com>
  */
+(function(global) {
+'use strict';
+
 module.exports = {
+
+    global:    global,
 
     console:   global.console,
     document:  global.document,
@@ -21,3 +27,5 @@ module.exports = {
         return new global.XMLHttpRequest();
     }
 };
+
+}(typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : typeof window !== 'undefined' ? window : {}));

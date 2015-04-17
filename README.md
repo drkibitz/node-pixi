@@ -1,7 +1,9 @@
-[![Build Status](https://secure.travis-ci.org/drkibitz/node-pixi.png?branch=master)](http://travis-ci.org/drkibitz/node-pixi?branch=master)
-[![Coverage Status](https://coveralls.io/repos/drkibitz/node-pixi/badge.png?branch=master)](https://coveralls.io/r/drkibitz/node-pixi?branch=master)
-[![NPM version](https://badge.fury.io/js/pixi.png)](http://badge.fury.io/js/pixi)
-[![devDependency Status](https://david-dm.org/drkibitz/node-pixi/dev-status.png)](https://david-dm.org/drkibitz/node-pixi#info=devDependencies)
+## Deprecated! This repository is now deprecated, please use the upstream project Pixi.JS v3+. It has now been migrated to a modular architecture.
+
+[![Build Status](https://secure.travis-ci.org/drkibitz/node-pixi.svg?branch=master)](http://travis-ci.org/drkibitz/node-pixi?branch=master)
+[![Coverage Status](https://coveralls.io/repos/drkibitz/node-pixi/badge.svg?branch=master)](https://coveralls.io/r/drkibitz/node-pixi?branch=master)
+[![NPM version](https://badge.fury.io/js/pixi.svg)](http://badge.fury.io/js/pixi)
+[![devDependency Status](https://david-dm.org/drkibitz/node-pixi/dev-status.svg)](https://david-dm.org/drkibitz/node-pixi#info=devDependencies)
 
 # Node Pixi Renderer
 

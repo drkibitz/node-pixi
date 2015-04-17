@@ -56,9 +56,9 @@ function ImageMock() {
 			},
 			set: function setSrc(src) {
 				_complete = false;
-				global.clearTimeout(_loadTimeoutId);
+				platform.global.clearTimeout(_loadTimeoutId);
 				if (src) {
-					_loadTimeoutId = global.setTimeout(function () {
+					_loadTimeoutId = platform.global.setTimeout(function () {
 						_width = 10;
 						_height = 10;
 						_complete = true;
@@ -98,5 +98,5 @@ platform.createRequest = function createRequestMock() {
 // They are only available when using the bundles
 // made with this module.
 
-global.PIXI = require('./pixi/index');
-global.requestAnimFrame = require('./pixi/utils/raf');
+platform.global.PIXI = require('./pixi/index');
+platform.global.requestAnimFrame = require('./pixi/utils/raf');
