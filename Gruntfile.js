@@ -81,6 +81,8 @@ module.exports = function(grunt) {
                     src: '**',
                     dest: '<%= dir.buildpkg %>/'
                 }, {
+                    cwd: './',
+                    expand: true,
                     src: [
                         'LICENSE',
                         'LICENSE-Pixi',
