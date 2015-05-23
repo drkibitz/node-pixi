@@ -1,9 +1,9 @@
 /**
- * pixi 0.3.0 (2c34ecd)
+ * pixi 0.3.0 (541b748)
  * http://drkibitz.github.io/node-pixi/
  * Copyright (c) 2013-2015 Dr. Kibitz, http://drkibitz.com
  * Super fast 2D rendering engine for browserify, that uses WebGL with a context 2d fallback.
- * built: Fri Apr 17 2015 15:44:26 GMT-0700 (PDT)
+ * built: Fri May 22 2015 20:08:22 GMT-0700 (PDT)
  *
  * Pixi.js - v1.3.0
  * Copyright (c) 2012, Mat Groves
