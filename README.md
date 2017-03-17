@@ -163,7 +163,3 @@ grunt test
 - **node-pixi documentation**
 - **either update wiki, or remove it**
 - **complete unit tests, and working functional tests**
-
-
-[![Bitdeli Badge](https://d2weczhvl823v0.cloudfront.net/drkibitz/node-pixi/trend.png)](https://bitdeli.com/free "Bitdeli Badge")
-
